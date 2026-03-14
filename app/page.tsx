@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Cpu, BarChart2, Factory, ArrowRight } from "lucide-react";
 
