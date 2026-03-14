@@ -1,5 +1,5 @@
 // Remotion composition: "Digitale Raffinerie" — Horizontal workflow
-// Raw particles → RAWLOGIC KERN box (grey→gold) → single Autonomous Workflow symbol
+// Rohdaten + Marktdaten + Archivdaten → RAWLOGIC KERN (Synchronisation) → Autonomer Workflow
 
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remotion";
@@ -7,7 +7,7 @@ import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remo
 // ── Canvas ──────────────────────────────────────────────────
 const W   = 1260;
 const H   = 300;
-const INK = "#111111";
+const INK = "#000000";
 
 // ── Layout zones ────────────────────────────────────────────
 const EMIT_X  = 60;                            // Datenquelle (left edge)
@@ -15,21 +15,25 @@ const BOX_X   = 350; const BOX_Y = 50;         // Kern box top-left
 const BOX_W   = 560; const BOX_H = 172;        // box centered on x=630
 const BOX_R   = BOX_X + BOX_W;                 // 910
 const SYM_CX  = 1200;                          // single symbol centre x (right edge)
-const SYM_CY  = H / 2;                         // 150 — symbol centre y
+const SYM_CY  = H / 2;                         // 150
 
-// Lane y-positions (three refinery tracks inside box)
+// Three refinery tracks inside box
 const LANE_Y: [number, number, number] = [
   BOX_Y + 34,   // 84
   BOX_Y + 86,   // 136
   BOX_Y + 138,  // 188
 ];
 
-// Zone label positions
+// External feeder entry x-positions (Marktdaten top, Archivdaten bottom)
+const MARKT_X  = Math.round(BOX_X + BOX_W * 0.35); // 546
+const ARCHIV_X = Math.round(BOX_X + BOX_W * 0.66); // 720
+
+// Zone labels
 const ZLABEL_Y  = 272;
 const ZONE_LBLS = [
-  { x: (EMIT_X + BOX_X) / 2,   text: "ROHDATEN"                   },  // ≈ 205
-  { x: BOX_X + BOX_W / 2,      text: "ALGORITHMISCHE VEREDELUNG"  },  // 630
-  { x: (BOX_R + W) / 2,        text: "AUTONOMER WORKFLOW"         },  // 1085
+  { x: (EMIT_X + BOX_X) / 2,   text: "ROHDATEN"                },  // ≈ 205
+  { x: BOX_X + BOX_W / 2,      text: "DATEN-SYNCHRONISATION"   },  // 630
+  { x: (BOX_R + W) / 2,        text: "AUTONOMER WORKFLOW"      },  // 1085
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -52,8 +56,9 @@ function particle(frame: number, fps: number, i: number) {
   const t       = ((frame + offset) % PERIOD) / PERIOD;
   const lane    = i % 3 as 0 | 1 | 2;
 
-  // ── X ──
   const PRE = 0.38, MID = 0.66;
+
+  // ── X ──
   let x: number;
   if (t < PRE) {
     x = EMIT_X + (BOX_X - EMIT_X) * (t / PRE);
@@ -65,7 +70,7 @@ function particle(frame: number, fps: number, i: number) {
     x = BOX_R + (SYM_CX - BOX_R) * e;
   }
 
-  // ── Y ── scatter entry → align to lane inside box → converge to symbol centre
+  // ── Y ── scatter → align to lane inside box → converge to symbol centre
   const scatter = (i * 37 % 80) - 40;
   const entryY  = LANE_Y[1] + scatter;
   const laneY   = LANE_Y[lane];
@@ -77,7 +82,6 @@ function particle(frame: number, fps: number, i: number) {
     const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
     y = entryY + (laneY - entryY) * e;
   } else {
-    // converge all lanes toward the single symbol centre
     const p2 = (t - MID) / (1 - MID);
     const e2 = p2 < 0.5 ? 2 * p2 * p2 : 1 - (-2 * p2 + 2) ** 2 / 2;
     y = laneY + (SYM_CY - laneY) * e2;
@@ -130,6 +134,9 @@ export const AutonomousGrid: React.FC = () => {
   const scanX  = BOX_X + scanT * BOX_W;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
+  // Feeder opacity — fades in after box is drawn
+  const feedOp = Math.max(0, (boxBuild - 0.35) / 0.65) * 0.52;
+
   const CL      = 14;
   const goldRGB = "rgb(196,150,28)";
 
@@ -155,14 +162,14 @@ export const AutonomousGrid: React.FC = () => {
         {/* ── Zone separator dashed lines ─────────────────── */}
         {[BOX_X, BOX_R].map((lx, i) => (
           <line key={i} x1={lx} y1={14} x2={lx} y2={245}
-            stroke={`rgba(17,17,17,${0.1 * boxBuild})`}
+            stroke={`rgba(0,0,0,${0.1 * boxBuild})`}
             strokeWidth={1} strokeDasharray="4 5" />
         ))}
 
         {/* ── RAWLOGIC KERN box (perimeter draw) ──────────── */}
         <path
           d={boxPath}
-          fill="rgba(17,17,17,0.02)"
+          fill="rgba(0,0,0,0.02)"
           stroke={INK}
           strokeWidth={2}
           strokeDasharray={PERIM}
@@ -191,10 +198,10 @@ export const AutonomousGrid: React.FC = () => {
           RAWLOGIC KERN
         </text>
 
-        {/* Lane guide lines (faint dashes — the three refinery tracks) */}
+        {/* Lane guide lines (three refinery tracks) */}
         {LANE_Y.map((ly, k) => (
           <line key={k} x1={BOX_X + 6} y1={ly} x2={BOX_R - 6} y2={ly}
-            stroke={`rgba(17,17,17,${0.055 * boxBuild})`}
+            stroke={`rgba(0,0,0,${0.06 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
@@ -205,11 +212,40 @@ export const AutonomousGrid: React.FC = () => {
         {/* Status indicator */}
         <text x={BOX_R - 8} y={BOX_Y + BOX_H - 6}
           textAnchor="end"
-          fill={`rgba(17,17,17,${0.3 * boxBuild})`}
+          fill={`rgba(0,0,0,${0.3 * boxBuild})`}
           fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
         >
           STATUS: AKTIV
         </text>
+
+        {/* ── External data feeders ──────────────────────────
+             Marktdaten enters from top, Archivdaten from bottom.
+             Both merge into RAWLOGIC KERN — showing Daten-Synchronisation. */}
+        {feedOp > 0 && (
+          <g opacity={feedOp}>
+            {/* Marktdaten — top feeder */}
+            <line x1={MARKT_X} y1={6} x2={MARKT_X} y2={BOX_Y - 1}
+              stroke={INK} strokeWidth={1} strokeDasharray="3 4" />
+            <circle cx={MARKT_X} cy={BOX_Y} r={2.5} fill={INK} />
+            <text x={MARKT_X} y={12}
+              textAnchor="middle" fill={INK}
+              fontSize={6.5} fontFamily="ui-monospace, monospace" letterSpacing={1}
+            >
+              MARKTDATEN
+            </text>
+
+            {/* Archivdaten — bottom feeder */}
+            <line x1={ARCHIV_X} y1={BOX_Y + BOX_H + 1} x2={ARCHIV_X} y2={251}
+              stroke={INK} strokeWidth={1} strokeDasharray="3 4" />
+            <circle cx={ARCHIV_X} cy={BOX_Y + BOX_H} r={2.5} fill={INK} />
+            <text x={ARCHIV_X} y={261}
+              textAnchor="middle" fill={INK}
+              fontSize={6.5} fontFamily="ui-monospace, monospace" letterSpacing={1}
+            >
+              ARCHIVDATEN
+            </text>
+          </g>
+        )}
 
         {/* ── Emitter (Datenquelle) ────────────────────────── */}
         <circle cx={EMIT_X} cy={LANE_Y[1]} r={6}
@@ -217,10 +253,11 @@ export const AutonomousGrid: React.FC = () => {
           opacity={boxBuild} />
         <circle cx={EMIT_X} cy={LANE_Y[1]} r={2.2}
           fill={INK} opacity={boxBuild} />
-        <text x={EMIT_X} y={BOX_Y - 10}
+        <text x={EMIT_X} y={BOX_Y - 12}
           textAnchor="middle" fill={INK}
-          fontSize={7} fontFamily="ui-monospace, monospace"
-          opacity={0.65 * boxBuild}
+          fontSize={10} fontWeight="700"
+          fontFamily="ui-monospace, monospace"
+          opacity={0.9 * boxBuild}
         >
           DATENQUELLE
         </text>
@@ -245,9 +282,8 @@ export const AutonomousGrid: React.FC = () => {
         ))}
 
         {/* ── Autonomer Workflow Symbol ─────────────────────
-             Outer hexagon rotates slowly.
-             Inner hexagon counter-rotates and pulses.
-             Both flash gold when a refined particle arrives. */}
+             Outer hexagon rotates slowly. Inner hexagon counter-rotates
+             and pulses. Flashes gold when refined particles arrive. */}
         {(() => {
           const outerPts = Array.from({ length: 6 }, (_, k) => {
             const a = k * Math.PI / 3 + rot;
@@ -259,7 +295,7 @@ export const AutonomousGrid: React.FC = () => {
           }).join(" ");
           const isHit      = hitFlash > 0.3;
           const strokeCol  = isHit ? goldRGB : INK;
-          const flashAlpha = symEntry * (0.8 + hitFlash * 0.4);
+          const flashAlpha = symEntry * (0.85 + hitFlash * 0.4);
           return (
             <g filter={hitFlash > 0.5 ? "url(#fg)" : undefined}>
               <polygon points={outerPts} fill="none"
@@ -279,9 +315,9 @@ export const AutonomousGrid: React.FC = () => {
         {ZONE_LBLS.map(({ x, text }, k) => (
           <text key={k} x={x} y={ZLABEL_Y}
             textAnchor="middle"
-            fill="#111111"
+            fill="#000000"
             fontSize={8} fontFamily="ui-monospace, monospace" letterSpacing={1}
-            opacity={0.75 * lblFade}
+            opacity={0.78 * lblFade}
           >
             {text}
           </text>
@@ -290,7 +326,7 @@ export const AutonomousGrid: React.FC = () => {
         {/* Arrows between zone labels */}
         {[BOX_X - 18, BOX_R + 18].map((ax, k) => (
           <text key={k} x={ax + (k === 0 ? 0 : 24)} y={ZLABEL_Y}
-            textAnchor="middle" fill={`rgba(17,17,17,${0.3 * lblFade})`}
+            textAnchor="middle" fill={`rgba(0,0,0,${0.3 * lblFade})`}
             fontSize={9}
           >→</text>
         ))}

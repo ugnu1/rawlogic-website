@@ -1,5 +1,5 @@
 // Remotion composition: "Digitale Raffinerie" — Vertical mobile workflow
-// Raw particles fall from Datenquelle → RAWLOGIC KERN box (grey→gold) → Autonomer Workflow symbol
+// Rohdaten + seitliche Datenquellen → RAWLOGIC KERN (Synchronisation) → Autonomer Workflow
 
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remotion";
@@ -7,11 +7,11 @@ import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remo
 // ── Canvas ──────────────────────────────────────────────────
 const MW  = 300;
 const MH  = 600;
-const INK = "#111111";
+const INK = "#000000";
 
 // ── Layout zones (vertical) ─────────────────────────────────
-const EMIT_CX = MW / 2;   // 150 — emitter centre x
-const EMIT_CY = 68;       // emitter centre y (pushed down to give ROHDATEN label room)
+const EMIT_CX = MW / 2;   // 150
+const EMIT_CY = 68;
 
 const BOX_X_M = 35;       const BOX_Y_M = 118;
 const BOX_W_M = 230;      const BOX_H_M = 200;
@@ -20,18 +20,22 @@ const BOX_BOT = BOX_Y_M + BOX_H_M;   // 318
 const SYM_CX_M = MW / 2;   // 150
 const SYM_CY_M = 500;
 
-// Three vertical lane tracks inside box (x-positions)
+// Three vertical lane tracks inside box
 const LANE_X_M: [number, number, number] = [
   Math.round(BOX_X_M + BOX_W_M * 0.25),  // ≈ 92
-  Math.round(BOX_X_M + BOX_W_M * 0.5),   // 150 centre
+  Math.round(BOX_X_M + BOX_W_M * 0.5),   // 150
   Math.round(BOX_X_M + BOX_W_M * 0.75),  // ≈ 207
 ];
 
-// Zone labels — ROHDATEN sits above the emitter (y=22) to stay clear of particle path
+// External feeder entry y-positions (Marktdaten left, Archivdaten right)
+const MARKT_Y_M  = Math.round(BOX_Y_M + BOX_H_M * 0.33); // ≈ 184
+const ARCHIV_Y_M = Math.round(BOX_Y_M + BOX_H_M * 0.67); // ≈ 252
+
+// Zone labels — ROHDATEN above emitter, clear of particle path
 const ZONE_LBLS_M = [
-  { x: MW / 2, y: 22,  text: "ROHDATEN"                   },
-  { x: MW / 2, y: 334, text: "ALGORITHMISCHE VEREDELUNG"  },
-  { x: MW / 2, y: 572, text: "AUTONOMER WORKFLOW"         },
+  { x: MW / 2, y: 22,  text: "ROHDATEN"               },
+  { x: MW / 2, y: 334, text: "DATEN-SYNCHRONISATION"  },
+  { x: MW / 2, y: 572, text: "AUTONOMER WORKFLOW"     },
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -45,7 +49,7 @@ function lerpColor(t: number) {
   return `rgb(${r},${g},${b})`;
 }
 
-// ── Particle system (vertical gravity drop) ─────────────────
+// ── Particle system ─────────────────────────────────────────
 const N = 24;
 
 function particleMobile(frame: number, fps: number, i: number) {
@@ -56,7 +60,7 @@ function particleMobile(frame: number, fps: number, i: number) {
 
   const PRE = 0.38, MID = 0.66;
 
-  // ── Y ── fall from emitter through box to symbol
+  // ── Y ──
   let y: number;
   if (t < PRE) {
     y = EMIT_CY + (BOX_Y_M - EMIT_CY) * (t / PRE);
@@ -68,7 +72,7 @@ function particleMobile(frame: number, fps: number, i: number) {
     y = BOX_BOT + (SYM_CY_M - BOX_BOT) * e;
   }
 
-  // ── X ── scatter entry → align to lane track inside box → converge to centre
+  // ── X ── scatter → align to lane track → converge to centre
   const scatter = (i * 37 % 60) - 30;
   const entryX  = EMIT_CX + scatter;
   const laneX   = LANE_X_M[lane];
@@ -110,11 +114,9 @@ export const MobileRefinery: React.FC = () => {
   const symEntry = ei(frame, 38, 62);
   const lblFade  = ei(frame, 45, 62);
 
-  // Symbol rotation & pulse
   const rot   = (frame * 0.5) * Math.PI / 180;
   const pulse = 0.85 + 0.15 * Math.sin(frame * 0.12);
 
-  // Flash when a golden particle reaches the symbol
   const hitFlash = parts.reduce((max, p) => {
     const dx = p.x - SYM_CX_M;
     const dy = p.y - SYM_CY_M;
@@ -127,11 +129,13 @@ export const MobileRefinery: React.FC = () => {
   const PERIM_M = 2 * (BOX_W_M + BOX_H_M);
   const boxPath = `M ${BOX_X_M},${BOX_Y_M} h ${BOX_W_M} v ${BOX_H_M} h ${-BOX_W_M} Z`;
 
-  // Scanning horizontal line (sweeps downward through box)
   const SCAN_P = fps * 2.4;
   const scanT  = (frame % SCAN_P) / SCAN_P;
   const scanY  = BOX_Y_M + scanT * BOX_H_M;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
+
+  // Feeder opacity — appears after box is drawn
+  const feedOp = Math.max(0, (boxBuild - 0.35) / 0.65) * 0.52;
 
   const CL      = 12;
   const goldRGB = "rgb(196,150,28)";
@@ -155,17 +159,17 @@ export const MobileRefinery: React.FC = () => {
           </filter>
         </defs>
 
-        {/* ── Zone separator dashed lines (horizontal) ─────── */}
+        {/* Zone separator dashed lines */}
         {[BOX_Y_M, BOX_BOT].map((ly, i) => (
           <line key={i} x1={14} y1={ly} x2={MW - 14} y2={ly}
-            stroke={`rgba(17,17,17,${0.1 * boxBuild})`}
+            stroke={`rgba(0,0,0,${0.1 * boxBuild})`}
             strokeWidth={1} strokeDasharray="4 5" />
         ))}
 
-        {/* ── RAWLOGIC KERN box (perimeter draw) ──────────── */}
+        {/* RAWLOGIC KERN box */}
         <path
           d={boxPath}
-          fill="rgba(17,17,17,0.02)"
+          fill="rgba(0,0,0,0.02)"
           stroke={INK}
           strokeWidth={2}
           strokeDasharray={PERIM_M}
@@ -194,10 +198,10 @@ export const MobileRefinery: React.FC = () => {
           RAWLOGIC KERN
         </text>
 
-        {/* Lane guide lines (vertical dashes — three parallel tracks) */}
+        {/* Lane guide lines */}
         {LANE_X_M.map((lx, k) => (
           <line key={k} x1={lx} y1={BOX_Y_M + 6} x2={lx} y2={BOX_BOT - 6}
-            stroke={`rgba(17,17,17,${0.055 * boxBuild})`}
+            stroke={`rgba(0,0,0,${0.06 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
@@ -208,11 +212,46 @@ export const MobileRefinery: React.FC = () => {
         {/* Status indicator */}
         <text x={BOX_X_M + BOX_W_M - 6} y={BOX_BOT - 6}
           textAnchor="end"
-          fill={`rgba(17,17,17,${0.3 * boxBuild})`}
+          fill={`rgba(0,0,0,${0.3 * boxBuild})`}
           fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
         >
           STATUS: AKTIV
         </text>
+
+        {/* ── External data feeders ──────────────────────────
+             Marktdaten enters from the left side of the Kern box.
+             Archivdaten enters from the right side.
+             Labels are rotated to sit cleanly in the side margins. */}
+        {feedOp > 0 && (
+          <g opacity={feedOp}>
+            {/* Marktdaten — left feeder */}
+            <line x1={2} y1={MARKT_Y_M} x2={BOX_X_M - 1} y2={MARKT_Y_M}
+              stroke={INK} strokeWidth={1} strokeDasharray="3 4" />
+            <circle cx={BOX_X_M} cy={MARKT_Y_M} r={2.5} fill={INK} />
+            <text
+              x={BOX_X_M / 2} y={MARKT_Y_M}
+              textAnchor="middle" fill={INK}
+              fontSize={6} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
+              transform={`rotate(-90, ${BOX_X_M / 2}, ${MARKT_Y_M})`}
+            >
+              MARKTDATEN
+            </text>
+
+            {/* Archivdaten — right feeder */}
+            <line x1={BOX_X_M + BOX_W_M + 1} y1={ARCHIV_Y_M} x2={MW - 2} y2={ARCHIV_Y_M}
+              stroke={INK} strokeWidth={1} strokeDasharray="3 4" />
+            <circle cx={BOX_X_M + BOX_W_M} cy={ARCHIV_Y_M} r={2.5} fill={INK} />
+            <text
+              x={BOX_X_M + BOX_W_M + (MW - BOX_X_M - BOX_W_M) / 2}
+              y={ARCHIV_Y_M}
+              textAnchor="middle" fill={INK}
+              fontSize={6} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
+              transform={`rotate(90, ${BOX_X_M + BOX_W_M + (MW - BOX_X_M - BOX_W_M) / 2}, ${ARCHIV_Y_M})`}
+            >
+              ARCHIVDATEN
+            </text>
+          </g>
+        )}
 
         {/* ── Emitter (Datenquelle) ────────────────────────── */}
         <circle cx={EMIT_CX} cy={EMIT_CY} r={6}
@@ -220,10 +259,11 @@ export const MobileRefinery: React.FC = () => {
           opacity={boxBuild} />
         <circle cx={EMIT_CX} cy={EMIT_CY} r={2.2}
           fill={INK} opacity={boxBuild} />
-        <text x={EMIT_CX + 18} y={EMIT_CY + 4}
+        <text x={EMIT_CX + 14} y={EMIT_CY + 5}
           fill={INK}
-          fontSize={7} fontFamily="ui-monospace, monospace"
-          opacity={0.65 * boxBuild}
+          fontSize={9} fontWeight="700"
+          fontFamily="ui-monospace, monospace"
+          opacity={0.9 * boxBuild}
         >
           DATENQUELLE
         </text>
@@ -248,8 +288,7 @@ export const MobileRefinery: React.FC = () => {
         ))}
 
         {/* ── Autonomer Workflow Symbol ─────────────────────
-             Large — outer rotating hex, inner counter-rotating pulse hex,
-             centre dot. Flashes gold when refined particles arrive. */}
+             Large rotating/pulsing hexagon. Flashes gold on particle hit. */}
         {(() => {
           const outerPts = Array.from({ length: 6 }, (_, k) => {
             const a = k * Math.PI / 3 + rot;
@@ -261,7 +300,7 @@ export const MobileRefinery: React.FC = () => {
           }).join(" ");
           const isHit      = hitFlash > 0.3;
           const strokeCol  = isHit ? goldRGB : INK;
-          const flashAlpha = symEntry * (0.8 + hitFlash * 0.4);
+          const flashAlpha = symEntry * (0.85 + hitFlash * 0.4);
           return (
             <g filter={hitFlash > 0.5 ? "url(#fg-m)" : undefined}>
               <polygon points={outerPts} fill="none"
@@ -281,9 +320,9 @@ export const MobileRefinery: React.FC = () => {
         {ZONE_LBLS_M.map(({ x, y, text }, k) => (
           <text key={k} x={x} y={y}
             textAnchor="middle"
-            fill="#111111"
+            fill="#000000"
             fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={1}
-            opacity={0.75 * lblFade}
+            opacity={0.78 * lblFade}
           >
             {text}
           </text>
