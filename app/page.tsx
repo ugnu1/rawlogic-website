@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import LatticeSection from "./components/LatticeSection";
 
 const divisions = [
   {
@@ -107,6 +108,9 @@ export default function Home() {
 
         </div>
       </section>
+
+      {/* ── LATTICE ANIMATION ──────────────────────────────── */}
+      <LatticeSection />
 
       {/* ── TRUST STRIP ────────────────────────────────────── */}
       <div className="border-b border-zinc-300 bg-zinc-200/60 px-6 py-4">
