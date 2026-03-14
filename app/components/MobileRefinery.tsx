@@ -1,5 +1,5 @@
 // Remotion composition: "Digitale Raffinerie" — Vertical mobile workflow
-// Raw particles fall from emitter → RAWLOGIC CORE box (grey→gold) → single Workflow symbol
+// Raw particles fall from Datenquelle → RAWLOGIC KERN box (grey→gold) → Autonomer Workflow symbol
 
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remotion";
@@ -7,18 +7,18 @@ import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remo
 // ── Canvas ──────────────────────────────────────────────────
 const MW  = 300;
 const MH  = 600;
-const INK = "#1a1a1a";
+const INK = "#111111";
 
 // ── Layout zones (vertical) ─────────────────────────────────
 const EMIT_CX = MW / 2;   // 150 — emitter centre x
-const EMIT_CY = 55;       // emitter centre y
+const EMIT_CY = 68;       // emitter centre y (pushed down to give ROHDATEN label room)
 
-const BOX_X_M = 35;       const BOX_Y_M = 105;
+const BOX_X_M = 35;       const BOX_Y_M = 118;
 const BOX_W_M = 230;      const BOX_H_M = 200;
-const BOX_BOT = BOX_Y_M + BOX_H_M;   // 305
+const BOX_BOT = BOX_Y_M + BOX_H_M;   // 318
 
 const SYM_CX_M = MW / 2;   // 150
-const SYM_CY_M = 490;
+const SYM_CY_M = 500;
 
 // Three vertical lane tracks inside box (x-positions)
 const LANE_X_M: [number, number, number] = [
@@ -27,11 +27,11 @@ const LANE_X_M: [number, number, number] = [
   Math.round(BOX_X_M + BOX_W_M * 0.75),  // ≈ 207
 ];
 
-// Zone labels
+// Zone labels — ROHDATEN sits above the emitter (y=22) to stay clear of particle path
 const ZONE_LBLS_M = [
-  { x: MW / 2, y: 88,  text: "[ RAW_INPUT ]"            },
-  { x: MW / 2, y: 323, text: "[ ALGORITHMIC_REFINERY ]" },
-  { x: MW / 2, y: 565, text: "[ AUTONOMOUS_WORKFLOW ]"  },
+  { x: MW / 2, y: 22,  text: "ROHDATEN"                   },
+  { x: MW / 2, y: 334, text: "ALGORITHMISCHE VEREDELUNG"  },
+  { x: MW / 2, y: 572, text: "AUTONOMER WORKFLOW"         },
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -85,10 +85,7 @@ function particleMobile(frame: number, fps: number, i: number) {
     x = laneX + (SYM_CX_M - laneX) * e2;
   }
 
-  // ── Color progress ──
-  const ct = t < PRE ? 0 : t < MID ? (t - PRE) / (MID - PRE) : 1;
-
-  // ── Fade at endpoints ──
+  const ct      = t < PRE ? 0 : t < MID ? (t - PRE) / (MID - PRE) : 1;
   const opacity = t < 0.04 ? t / 0.04 : t > 0.96 ? (1 - t) / 0.04 : 0.93;
 
   return { x, y, color: lerpColor(ct), opacity, r: 2.4 + ct * 1.6, ct };
@@ -127,17 +124,15 @@ export const MobileRefinery: React.FC = () => {
     return max;
   }, 0);
 
-  // Box perimeter draw
   const PERIM_M = 2 * (BOX_W_M + BOX_H_M);
   const boxPath = `M ${BOX_X_M},${BOX_Y_M} h ${BOX_W_M} v ${BOX_H_M} h ${-BOX_W_M} Z`;
 
-  // Scanning horizontal line (sweeps downward)
+  // Scanning horizontal line (sweeps downward through box)
   const SCAN_P = fps * 2.4;
   const scanT  = (frame % SCAN_P) / SCAN_P;
   const scanY  = BOX_Y_M + scanT * BOX_H_M;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
-  const proc    = ((frame * 2) % 9999) | 0;
   const CL      = 12;
   const goldRGB = "rgb(196,150,28)";
 
@@ -163,14 +158,14 @@ export const MobileRefinery: React.FC = () => {
         {/* ── Zone separator dashed lines (horizontal) ─────── */}
         {[BOX_Y_M, BOX_BOT].map((ly, i) => (
           <line key={i} x1={14} y1={ly} x2={MW - 14} y2={ly}
-            stroke={`rgba(26,26,26,${0.1 * boxBuild})`}
+            stroke={`rgba(17,17,17,${0.1 * boxBuild})`}
             strokeWidth={1} strokeDasharray="4 5" />
         ))}
 
-        {/* ── RAWLOGIC CORE box (perimeter draw) ─────────── */}
+        {/* ── RAWLOGIC KERN box (perimeter draw) ──────────── */}
         <path
           d={boxPath}
-          fill="rgba(26,26,26,0.02)"
+          fill="rgba(17,17,17,0.02)"
           stroke={INK}
           strokeWidth={2}
           strokeDasharray={PERIM_M}
@@ -179,10 +174,10 @@ export const MobileRefinery: React.FC = () => {
 
         {/* Corner marks */}
         {boxBuild > 0.85 && [
-          { x: BOX_X_M,            y: BOX_Y_M,           dx:  1, dy:  1 },
-          { x: BOX_X_M + BOX_W_M,  y: BOX_Y_M,           dx: -1, dy:  1 },
-          { x: BOX_X_M,            y: BOX_BOT,            dx:  1, dy: -1 },
-          { x: BOX_X_M + BOX_W_M,  y: BOX_BOT,            dx: -1, dy: -1 },
+          { x: BOX_X_M,            y: BOX_Y_M,  dx:  1, dy:  1 },
+          { x: BOX_X_M + BOX_W_M,  y: BOX_Y_M,  dx: -1, dy:  1 },
+          { x: BOX_X_M,            y: BOX_BOT,  dx:  1, dy: -1 },
+          { x: BOX_X_M + BOX_W_M,  y: BOX_BOT,  dx: -1, dy: -1 },
         ].map(({ x, y, dx, dy }, k) => (
           <path key={k}
             d={`M ${x + dx * CL},${y} L ${x},${y} L ${x},${y + dy * CL}`}
@@ -191,18 +186,18 @@ export const MobileRefinery: React.FC = () => {
         ))}
 
         {/* Box title */}
-        <text x={MW / 2} y={BOX_Y_M + 15}
+        <text x={MW / 2} y={BOX_Y_M + 16}
           textAnchor="middle" fill={INK} fontSize={9}
           fontFamily="ui-monospace, monospace" letterSpacing={2.5}
           opacity={boxBuild}
         >
-          RAWLOGIC CORE
+          RAWLOGIC KERN
         </text>
 
         {/* Lane guide lines (vertical dashes — three parallel tracks) */}
         {LANE_X_M.map((lx, k) => (
           <line key={k} x1={lx} y1={BOX_Y_M + 6} x2={lx} y2={BOX_BOT - 6}
-            stroke={`rgba(26,26,26,${0.055 * boxBuild})`}
+            stroke={`rgba(17,17,17,${0.055 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
@@ -210,34 +205,34 @@ export const MobileRefinery: React.FC = () => {
         <line x1={BOX_X_M + 2} y1={scanY} x2={BOX_X_M + BOX_W_M - 2} y2={scanY}
           stroke={`rgba(196,150,28,${scanOp})`} strokeWidth={1} />
 
-        {/* Process counter */}
+        {/* Status indicator */}
         <text x={BOX_X_M + BOX_W_M - 6} y={BOX_BOT - 6}
           textAnchor="end"
-          fill={`rgba(26,26,26,${0.22 * boxBuild})`}
-          fontSize={7} fontFamily="ui-monospace, monospace"
+          fill={`rgba(17,17,17,${0.3 * boxBuild})`}
+          fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
         >
-          {`PROC: ${proc.toString().padStart(4, "0")}`}
+          STATUS: AKTIV
         </text>
 
-        {/* ── Emitter ─────────────────────────────────────── */}
+        {/* ── Emitter (Datenquelle) ────────────────────────── */}
         <circle cx={EMIT_CX} cy={EMIT_CY} r={6}
           fill="none" stroke={INK} strokeWidth={1.5}
           opacity={boxBuild} />
         <circle cx={EMIT_CX} cy={EMIT_CY} r={2.2}
           fill={INK} opacity={boxBuild} />
-        <text x={EMIT_CX + 16} y={EMIT_CY + 4}
-          fill={`rgba(26,26,26,0.45)`}
+        <text x={EMIT_CX + 18} y={EMIT_CY + 4}
+          fill={INK}
           fontSize={7} fontFamily="ui-monospace, monospace"
-          opacity={boxBuild}
+          opacity={0.65 * boxBuild}
         >
-          EMIT
+          DATENQUELLE
         </text>
 
         {/* Flow arrows (down) */}
-        {[BOX_Y_M - 12, BOX_BOT + 12].map((ay, k) => (
+        {[BOX_Y_M - 14, BOX_BOT + 14].map((ay, k) => (
           <text key={k} x={EMIT_CX} y={ay}
             textAnchor="middle" fill={INK} fontSize={13}
-            opacity={0.22 * boxBuild}
+            opacity={0.25 * boxBuild}
           >↓</text>
         ))}
 
@@ -252,7 +247,7 @@ export const MobileRefinery: React.FC = () => {
           />
         ))}
 
-        {/* ── Autonomous Workflow Symbol ───────────────────
+        {/* ── Autonomer Workflow Symbol ─────────────────────
              Large — outer rotating hex, inner counter-rotating pulse hex,
              centre dot. Flashes gold when refined particles arrive. */}
         {(() => {
@@ -266,7 +261,7 @@ export const MobileRefinery: React.FC = () => {
           }).join(" ");
           const isHit      = hitFlash > 0.3;
           const strokeCol  = isHit ? goldRGB : INK;
-          const flashAlpha = symEntry * (0.75 + hitFlash * 0.45);
+          const flashAlpha = symEntry * (0.8 + hitFlash * 0.4);
           return (
             <g filter={hitFlash > 0.5 ? "url(#fg-m)" : undefined}>
               <polygon points={outerPts} fill="none"
@@ -274,7 +269,7 @@ export const MobileRefinery: React.FC = () => {
                 opacity={flashAlpha} />
               <polygon points={innerPts} fill="none"
                 stroke={goldRGB} strokeWidth={1.5}
-                opacity={symEntry * (0.35 + hitFlash * 0.45)} />
+                opacity={symEntry * (0.4 + hitFlash * 0.4)} />
               <circle cx={SYM_CX_M} cy={SYM_CY_M} r={6 * symEntry}
                 fill={isHit ? goldRGB : INK}
                 opacity={flashAlpha} />
@@ -286,8 +281,9 @@ export const MobileRefinery: React.FC = () => {
         {ZONE_LBLS_M.map(({ x, y, text }, k) => (
           <text key={k} x={x} y={y}
             textAnchor="middle"
-            fill={`rgba(26,26,26,${0.42 * lblFade})`}
+            fill="#111111"
             fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={1}
+            opacity={0.75 * lblFade}
           >
             {text}
           </text>

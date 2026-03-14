@@ -1,5 +1,5 @@
 // Remotion composition: "Digitale Raffinerie" — Horizontal workflow
-// Raw particles → RAWLOGIC CORE box (grey→gold) → single Autonomous Workflow symbol
+// Raw particles → RAWLOGIC KERN box (grey→gold) → single Autonomous Workflow symbol
 
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remotion";
@@ -7,15 +7,15 @@ import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remo
 // ── Canvas ──────────────────────────────────────────────────
 const W   = 1260;
 const H   = 300;
-const INK = "#1a1a1a";
+const INK = "#111111";
 
 // ── Layout zones ────────────────────────────────────────────
-const EMIT_X  = 58;                           // emitter dot
-const BOX_X   = 230; const BOX_Y = 50;        // core box top-left
-const BOX_W   = 510; const BOX_H = 172;       // core box size
-const BOX_R   = BOX_X + BOX_W;               // 740
-const SYM_CX  = 990;                          // single symbol centre x
-const SYM_CY  = H / 2;                        // 150 — symbol centre y
+const EMIT_X  = 60;                            // Datenquelle (left edge)
+const BOX_X   = 350; const BOX_Y = 50;         // Kern box top-left
+const BOX_W   = 560; const BOX_H = 172;        // box centered on x=630
+const BOX_R   = BOX_X + BOX_W;                 // 910
+const SYM_CX  = 1200;                          // single symbol centre x (right edge)
+const SYM_CY  = H / 2;                         // 150 — symbol centre y
 
 // Lane y-positions (three refinery tracks inside box)
 const LANE_Y: [number, number, number] = [
@@ -24,12 +24,12 @@ const LANE_Y: [number, number, number] = [
   BOX_Y + 138,  // 188
 ];
 
-// Zone label x-positions
+// Zone label positions
 const ZLABEL_Y  = 272;
 const ZONE_LBLS = [
-  { x: (EMIT_X + BOX_X) / 2,       text: "[ RAW_INPUT ]"            },
-  { x: BOX_X + BOX_W / 2,          text: "[ ALGORITHMIC_REFINERY ]" },
-  { x: (BOX_R + W) / 2,            text: "[ AUTONOMOUS_WORKFLOW ]"  },
+  { x: (EMIT_X + BOX_X) / 2,   text: "ROHDATEN"                   },  // ≈ 205
+  { x: BOX_X + BOX_W / 2,      text: "ALGORITHMISCHE VEREDELUNG"  },  // 630
+  { x: (BOX_R + W) / 2,        text: "AUTONOMER WORKFLOW"         },  // 1085
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -77,16 +77,13 @@ function particle(frame: number, fps: number, i: number) {
     const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
     y = entryY + (laneY - entryY) * e;
   } else {
-    // converge all lanes to the single symbol centre
+    // converge all lanes toward the single symbol centre
     const p2 = (t - MID) / (1 - MID);
     const e2 = p2 < 0.5 ? 2 * p2 * p2 : 1 - (-2 * p2 + 2) ** 2 / 2;
     y = laneY + (SYM_CY - laneY) * e2;
   }
 
-  // ── Color progress ──
-  const ct = t < PRE ? 0 : t < MID ? (t - PRE) / (MID - PRE) : 1;
-
-  // ── Fade at endpoints ──
+  const ct      = t < PRE ? 0 : t < MID ? (t - PRE) / (MID - PRE) : 1;
   const opacity = t < 0.04 ? t / 0.04 : t > 0.96 ? (1 - t) / 0.04 : 0.93;
 
   return { x, y, color: lerpColor(ct), opacity, r: 2.4 + ct * 1.6, ct };
@@ -125,19 +122,16 @@ export const AutonomousGrid: React.FC = () => {
     return max;
   }, 0);
 
-  // Box perimeter draw animation
   const PERIM   = 2 * (BOX_W + BOX_H);
   const boxPath = `M ${BOX_X},${BOX_Y} h ${BOX_W} v ${BOX_H} h ${-BOX_W} Z`;
 
-  // Scanning line inside box
   const SCAN_P = fps * 2.4;
   const scanT  = (frame % SCAN_P) / SCAN_P;
   const scanX  = BOX_X + scanT * BOX_W;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
-  const proc     = ((frame * 2) % 9999) | 0;
-  const CL       = 14;
-  const goldRGB  = "rgb(196,150,28)";
+  const CL      = 14;
+  const goldRGB = "rgb(196,150,28)";
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#ebebeb" }}>
@@ -161,14 +155,14 @@ export const AutonomousGrid: React.FC = () => {
         {/* ── Zone separator dashed lines ─────────────────── */}
         {[BOX_X, BOX_R].map((lx, i) => (
           <line key={i} x1={lx} y1={14} x2={lx} y2={245}
-            stroke={`rgba(26,26,26,${0.1 * boxBuild})`}
+            stroke={`rgba(17,17,17,${0.1 * boxBuild})`}
             strokeWidth={1} strokeDasharray="4 5" />
         ))}
 
-        {/* ── RAWLOGIC CORE box (perimeter draw) ─────────── */}
+        {/* ── RAWLOGIC KERN box (perimeter draw) ──────────── */}
         <path
           d={boxPath}
-          fill="rgba(26,26,26,0.02)"
+          fill="rgba(17,17,17,0.02)"
           stroke={INK}
           strokeWidth={2}
           strokeDasharray={PERIM}
@@ -194,13 +188,13 @@ export const AutonomousGrid: React.FC = () => {
           fontFamily="ui-monospace, monospace" letterSpacing={2.5}
           opacity={boxBuild}
         >
-          RAWLOGIC CORE
+          RAWLOGIC KERN
         </text>
 
         {/* Lane guide lines (faint dashes — the three refinery tracks) */}
         {LANE_Y.map((ly, k) => (
           <line key={k} x1={BOX_X + 6} y1={ly} x2={BOX_R - 6} y2={ly}
-            stroke={`rgba(26,26,26,${0.055 * boxBuild})`}
+            stroke={`rgba(17,17,17,${0.055 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
@@ -208,27 +202,27 @@ export const AutonomousGrid: React.FC = () => {
         <line x1={scanX} y1={BOX_Y + 2} x2={scanX} y2={BOX_Y + BOX_H - 2}
           stroke={`rgba(196,150,28,${scanOp})`} strokeWidth={1} />
 
-        {/* Process counter */}
+        {/* Status indicator */}
         <text x={BOX_R - 8} y={BOX_Y + BOX_H - 6}
           textAnchor="end"
-          fill={`rgba(26,26,26,${0.22 * boxBuild})`}
-          fontSize={7} fontFamily="ui-monospace, monospace"
+          fill={`rgba(17,17,17,${0.3 * boxBuild})`}
+          fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
         >
-          {`PROC: ${proc.toString().padStart(4, "0")}`}
+          STATUS: AKTIV
         </text>
 
-        {/* ── Emitter ─────────────────────────────────────── */}
+        {/* ── Emitter (Datenquelle) ────────────────────────── */}
         <circle cx={EMIT_X} cy={LANE_Y[1]} r={6}
           fill="none" stroke={INK} strokeWidth={1.5}
           opacity={boxBuild} />
         <circle cx={EMIT_X} cy={LANE_Y[1]} r={2.2}
           fill={INK} opacity={boxBuild} />
         <text x={EMIT_X} y={BOX_Y - 10}
-          textAnchor="middle" fill={`rgba(26,26,26,0.45)`}
+          textAnchor="middle" fill={INK}
           fontSize={7} fontFamily="ui-monospace, monospace"
-          opacity={boxBuild}
+          opacity={0.65 * boxBuild}
         >
-          EMIT
+          DATENQUELLE
         </text>
 
         {/* Flow arrows */}
@@ -250,7 +244,7 @@ export const AutonomousGrid: React.FC = () => {
           />
         ))}
 
-        {/* ── Autonomous Workflow Symbol ───────────────────
+        {/* ── Autonomer Workflow Symbol ─────────────────────
              Outer hexagon rotates slowly.
              Inner hexagon counter-rotates and pulses.
              Both flash gold when a refined particle arrives. */}
@@ -265,7 +259,7 @@ export const AutonomousGrid: React.FC = () => {
           }).join(" ");
           const isHit      = hitFlash > 0.3;
           const strokeCol  = isHit ? goldRGB : INK;
-          const flashAlpha = symEntry * (0.75 + hitFlash * 0.45);
+          const flashAlpha = symEntry * (0.8 + hitFlash * 0.4);
           return (
             <g filter={hitFlash > 0.5 ? "url(#fg)" : undefined}>
               <polygon points={outerPts} fill="none"
@@ -273,7 +267,7 @@ export const AutonomousGrid: React.FC = () => {
                 opacity={flashAlpha} />
               <polygon points={innerPts} fill="none"
                 stroke={goldRGB} strokeWidth={1}
-                opacity={symEntry * (0.35 + hitFlash * 0.45)} />
+                opacity={symEntry * (0.4 + hitFlash * 0.4)} />
               <circle cx={SYM_CX} cy={SYM_CY} r={5 * symEntry}
                 fill={isHit ? goldRGB : INK}
                 opacity={flashAlpha} />
@@ -281,12 +275,13 @@ export const AutonomousGrid: React.FC = () => {
           );
         })()}
 
-        {/* ── Zone labels + arrows at bottom ─────────────── */}
+        {/* ── Zone labels at bottom ────────────────────────── */}
         {ZONE_LBLS.map(({ x, text }, k) => (
           <text key={k} x={x} y={ZLABEL_Y}
             textAnchor="middle"
-            fill={`rgba(26,26,26,${0.42 * lblFade})`}
+            fill="#111111"
             fontSize={8} fontFamily="ui-monospace, monospace" letterSpacing={1}
+            opacity={0.75 * lblFade}
           >
             {text}
           </text>
@@ -295,7 +290,7 @@ export const AutonomousGrid: React.FC = () => {
         {/* Arrows between zone labels */}
         {[BOX_X - 18, BOX_R + 18].map((ax, k) => (
           <text key={k} x={ax + (k === 0 ? 0 : 24)} y={ZLABEL_Y}
-            textAnchor="middle" fill={`rgba(26,26,26,${0.22 * lblFade})`}
+            textAnchor="middle" fill={`rgba(17,17,17,${0.3 * lblFade})`}
             fontSize={9}
           >→</text>
         ))}
