@@ -6,14 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "remotion:studio": "remotion studio app/remotion/index.tsx",
+    "remotion:render": "remotion render app/remotion/index.tsx AutonomousGrid out/AutonomousGrid.mp4"
   },
   "dependencies": {
+    "@remotion/cli": "^4.0.435",
+    "@remotion/player": "^4.0.435",
     "framer-motion": "^12.36.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "remotion": "^4.0.435"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
