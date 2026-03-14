@@ -11,8 +11,8 @@ const INK = "#000000";
 
 // ── Layout zones ────────────────────────────────────────────
 const EMIT_X  = 60;
-const BOX_X   = 350; const BOX_Y = 50;
-const BOX_W   = 560; const BOX_H = 172;
+const BOX_X   = 350;  const BOX_Y = 50;
+const BOX_W   = 560;  const BOX_H = 172;
 const BOX_R   = BOX_X + BOX_W;   // 910
 const SYM_CX  = 1200;
 const SYM_CY  = H / 2;           // 150
@@ -23,21 +23,32 @@ const LANE_Y: [number, number, number] = [
   BOX_Y + 138,  // 188
 ];
 
-// External feeder x-positions
-const MARKT_X  = Math.round(BOX_X + BOX_W * 0.35); // 546 — Marktdaten pipe
-const ARCHIV_X = Math.round(BOX_X + BOX_W * 0.66); // 720 — Archivdaten pipe
+// ── Process badges (top strip) ───────────────────────────────
+// Centered over each zone; widths tuned to fit the label text.
+const BADGE_Y  = 6;    // rect top
+const BADGE_H  = 20;   // rect height → bottom at y=26
+const BADGE_TY = 19.5; // text baseline (vertically centered in rect)
 
-// Feeder pipe extents
-const MARKT_PIPE_TOP  = 16;        // top of Marktdaten pipe
-const ARCHIV_PIPE_BOT = H - 38;    // bottom of Archivdaten pipe (262)
-
-// Zone labels
-const ZLABEL_Y  = 272;
-const ZONE_LBLS = [
-  { x: (EMIT_X + BOX_X) / 2,   text: "ROHDATEN"               },
-  { x: BOX_X + BOX_W / 2,      text: "DATEN-SYNCHRONISATION"  },
-  { x: (BOX_R + W) / 2,        text: "AUTONOMER WORKFLOW"     },
+const BADGES = [
+  { cx: Math.round((EMIT_X + BOX_X) / 2),  label: "ROHDATEN",              bw: 88  }, // 205
+  { cx: BOX_X + BOX_W / 2,                 label: "DATEN-SYNCHRONISATION", bw: 184 }, // 630
+  { cx: Math.round((BOX_R + W) / 2),       label: "AUTONOMER WORKFLOW",    bw: 166 }, // 1085
 ];
+
+// Arrows sit in the gaps between badges
+const BADGE_ARROWS = [
+  Math.round((BADGES[0].cx + BADGES[0].bw / 2 + BADGES[1].cx - BADGES[1].bw / 2) / 2), // ≈ 394
+  Math.round((BADGES[1].cx + BADGES[1].bw / 2 + BADGES[2].cx - BADGES[2].bw / 2) / 2), // ≈ 862
+];
+
+// ── External feeder pipe x-positions ────────────────────────
+// Deliberately placed in the gap zones between badges so no pipe
+// falls beneath a badge background rectangle.
+const MARKT_X  = Math.round(BOX_X + BOX_W * 0.20); // 462 — between ROHDATEN & DATEN-SYNC badge
+const ARCHIV_X = Math.round(BOX_X + BOX_W * 0.74); // 764 — between DATEN-SYNC & AUTONOMER badge
+
+const MARKT_PIPE_TOP  = BADGE_Y + BADGE_H + 2;   // 28  — starts just below badge strip
+const ARCHIV_PIPE_BOT = H - 38;                   // 262 — ends above zone label area
 
 // ── Colour helpers ──────────────────────────────────────────
 const RAW  = { r: 148, g: 148, b: 148 };
@@ -92,12 +103,11 @@ function particle(frame: number, fps: number, i: number) {
   return { x, y, color: lerpColor(ct), opacity, r: 2.4 + ct * 1.6, ct };
 }
 
-// ── Feeder particle helpers ──────────────────────────────────
+// ── Feeder particles ─────────────────────────────────────────
 const N_FEED = 4;
 
 function feederParticles(
-  frame: number, fps: number,
-  startY: number, endY: number,
+  frame: number, fps: number, startY: number, endY: number,
 ): Array<{ y: number; op: number }> {
   const PERIOD = fps * 1.8;
   return Array.from({ length: N_FEED }, (_, i) => {
@@ -145,16 +155,13 @@ export const AutonomousGrid: React.FC = () => {
   const scanX  = BOX_X + scanT * BOX_W;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
-  // Feeder pipes fade in after box is built
-  const feedOp = Math.max(0, (boxBuild - 0.35) / 0.65);
-
-  // Feeder particles (Marktdaten flows top→box, Archivdaten flows bottom→box)
+  const feedOp     = Math.max(0, (boxBuild - 0.35) / 0.65);
   const marktFeed  = feederParticles(frame, fps, MARKT_PIPE_TOP,  BOX_Y);
   const archivFeed = feederParticles(frame, fps, ARCHIV_PIPE_BOT, BOX_Y + BOX_H);
 
   const CL      = 14;
   const goldRGB = "rgb(196,150,28)";
-  const PORT_R  = 4; // port circle radius
+  const PORT_R  = 4;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#ebebeb" }}>
@@ -175,19 +182,51 @@ export const AutonomousGrid: React.FC = () => {
           </filter>
         </defs>
 
-        {/* Zone separator dashed lines */}
+        {/* ── Process badges (top strip) ────────────────────
+             Rendered first so feeder pipes can emerge below them. */}
+        <g opacity={lblFade}>
+          {BADGES.map(({ cx, label, bw }) => (
+            <g key={label}>
+              <rect
+                x={cx - bw / 2} y={BADGE_Y}
+                width={bw} height={BADGE_H}
+                rx={3}
+                fill="#f2f2f2"
+                stroke="#333333"
+                strokeWidth={0.8}
+              />
+              <text
+                x={cx} y={BADGE_TY}
+                textAnchor="middle"
+                fill="#000000"
+                fontSize={7.5} fontWeight="700"
+                fontFamily="ui-monospace, monospace"
+                letterSpacing={0.8}
+              >{label}</text>
+            </g>
+          ))}
+          {/* Arrows between badges */}
+          {BADGE_ARROWS.map((ax, k) => (
+            <text key={k} x={ax} y={BADGE_TY}
+              textAnchor="middle"
+              fill="rgba(0,0,0,0.35)"
+              fontSize={9}
+            >→</text>
+          ))}
+        </g>
+
+        {/* ── Zone separator dashed lines ─────────────────── */}
         {[BOX_X, BOX_R].map((lx, i) => (
-          <line key={i} x1={lx} y1={14} x2={lx} y2={245}
+          <line key={i} x1={lx} y1={30} x2={lx} y2={245}
             stroke={`rgba(0,0,0,${0.1 * boxBuild})`}
             strokeWidth={1} strokeDasharray="4 5" />
         ))}
 
-        {/* RAWLOGIC KERN box */}
+        {/* ── RAWLOGIC KERN box ────────────────────────────── */}
         <path d={boxPath}
           fill="rgba(0,0,0,0.02)" stroke={INK} strokeWidth={2}
           strokeDasharray={PERIM} strokeDashoffset={PERIM * (1 - boxBuild)} />
 
-        {/* Corner marks */}
         {boxBuild > 0.85 && [
           { x: BOX_X, y: BOX_Y,          dx:  1, dy:  1 },
           { x: BOX_R, y: BOX_Y,          dx: -1, dy:  1 },
@@ -199,25 +238,21 @@ export const AutonomousGrid: React.FC = () => {
             fill="none" stroke={INK} strokeWidth={1.5} />
         ))}
 
-        {/* Box title */}
         <text x={BOX_X + BOX_W / 2} y={BOX_Y + 15}
           textAnchor="middle" fill={INK} fontSize={9}
           fontFamily="ui-monospace, monospace" letterSpacing={2.5}
           opacity={boxBuild}
         >RAWLOGIC KERN</text>
 
-        {/* Lane guide lines */}
         {LANE_Y.map((ly, k) => (
           <line key={k} x1={BOX_X + 6} y1={ly} x2={BOX_R - 6} y2={ly}
             stroke={`rgba(0,0,0,${0.06 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
-        {/* Scanning vertical line */}
         <line x1={scanX} y1={BOX_Y + 2} x2={scanX} y2={BOX_Y + BOX_H - 2}
           stroke={`rgba(196,150,28,${scanOp})`} strokeWidth={1} />
 
-        {/* Status */}
         <text x={BOX_R - 8} y={BOX_Y + BOX_H - 6}
           textAnchor="end" fill={`rgba(0,0,0,${0.3 * boxBuild})`}
           fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
@@ -225,23 +260,18 @@ export const AutonomousGrid: React.FC = () => {
 
         {/* ══════════════════════════════════════════════════════
             MARKTDATEN — solid injection pipe from top
+            Pipe starts just below the badge strip (y=28).
+            Label sits to the right, in the gap between badges.
             ══════════════════════════════════════════════════ */}
         <g opacity={feedOp}>
-          {/* Pipe */}
           <line x1={MARKT_X} y1={MARKT_PIPE_TOP} x2={MARKT_X} y2={BOX_Y}
             stroke={INK} strokeWidth={2} />
-          {/* Port square at box entry */}
-          <rect
-            x={MARKT_X - PORT_R} y={BOX_Y - PORT_R}
-            width={PORT_R * 2} height={PORT_R * 2}
-            fill={INK}
-          />
-          {/* Label — to the right of pipe, clear of it */}
-          <text x={MARKT_X + 7} y={30}
+          <rect x={MARKT_X - PORT_R} y={BOX_Y - PORT_R}
+            width={PORT_R * 2} height={PORT_R * 2} fill={INK} />
+          <text x={MARKT_X + 8} y={42}
             textAnchor="start" fill={INK}
             fontSize={6.5} fontFamily="ui-monospace, monospace" letterSpacing={1}
           >MARKTDATEN</text>
-          {/* Flowing particles (top → box) */}
           {marktFeed.map((p, i) => (
             <circle key={i} cx={MARKT_X} cy={p.y} r={2.2}
               fill="rgb(148,148,148)" opacity={p.op} />
@@ -250,30 +280,24 @@ export const AutonomousGrid: React.FC = () => {
 
         {/* ══════════════════════════════════════════════════════
             ARCHIVDATEN — solid injection pipe from bottom
+            Label sits to the right, in the gap between badges.
             ══════════════════════════════════════════════════ */}
         <g opacity={feedOp}>
-          {/* Pipe */}
           <line x1={ARCHIV_X} y1={BOX_Y + BOX_H} x2={ARCHIV_X} y2={ARCHIV_PIPE_BOT}
             stroke={INK} strokeWidth={2} />
-          {/* Port square at box entry */}
-          <rect
-            x={ARCHIV_X - PORT_R} y={BOX_Y + BOX_H - PORT_R}
-            width={PORT_R * 2} height={PORT_R * 2}
-            fill={INK}
-          />
-          {/* Label — to the right of pipe, clear of it */}
-          <text x={ARCHIV_X + 7} y={240}
+          <rect x={ARCHIV_X - PORT_R} y={BOX_Y + BOX_H - PORT_R}
+            width={PORT_R * 2} height={PORT_R * 2} fill={INK} />
+          <text x={ARCHIV_X + 8} y={244}
             textAnchor="start" fill={INK}
             fontSize={6.5} fontFamily="ui-monospace, monospace" letterSpacing={1}
           >ARCHIVDATEN</text>
-          {/* Flowing particles (bottom → box, upward) */}
           {archivFeed.map((p, i) => (
             <circle key={i} cx={ARCHIV_X} cy={p.y} r={2.2}
               fill="rgb(148,148,148)" opacity={p.op} />
           ))}
         </g>
 
-        {/* Emitter (Datenquelle) */}
+        {/* ── Emitter (Datenquelle) ────────────────────────── */}
         <circle cx={EMIT_X} cy={LANE_Y[1]} r={6}
           fill="none" stroke={INK} strokeWidth={1.5} opacity={boxBuild} />
         <circle cx={EMIT_X} cy={LANE_Y[1]} r={2.2}
@@ -285,7 +309,6 @@ export const AutonomousGrid: React.FC = () => {
           opacity={0.9 * boxBuild}
         >DATENQUELLE</text>
 
-        {/* Flow arrows */}
         {[BOX_X - 14, BOX_R + 14].map((ax, k) => (
           <text key={k} x={ax} y={LANE_Y[1] + 5}
             textAnchor="middle" fill={INK} fontSize={13}
@@ -293,7 +316,7 @@ export const AutonomousGrid: React.FC = () => {
           >→</text>
         ))}
 
-        {/* Main particles */}
+        {/* ── Main particles ──────────────────────────────── */}
         {parts.map((p, i) => (
           <circle key={i}
             cx={p.x} cy={p.y} r={p.r}
@@ -302,7 +325,9 @@ export const AutonomousGrid: React.FC = () => {
           />
         ))}
 
-        {/* Autonomer Workflow Symbol */}
+        {/* ── Autonomer Workflow Symbol ─────────────────────
+             Outer hex rotates, inner counter-rotates + pulses.
+             Flashes gold when a refined particle arrives.    */}
         {(() => {
           const outerPts = Array.from({ length: 6 }, (_, k) => {
             const a = k * Math.PI / 3 + rot;
@@ -328,21 +353,6 @@ export const AutonomousGrid: React.FC = () => {
             </g>
           );
         })()}
-
-        {/* Zone labels */}
-        {ZONE_LBLS.map(({ x, text }, k) => (
-          <text key={k} x={x} y={ZLABEL_Y}
-            textAnchor="middle" fill="#000000"
-            fontSize={8} fontFamily="ui-monospace, monospace" letterSpacing={1}
-            opacity={0.78 * lblFade}
-          >{text}</text>
-        ))}
-        {[BOX_X - 18, BOX_R + 18].map((ax, k) => (
-          <text key={k} x={ax + (k === 0 ? 0 : 24)} y={ZLABEL_Y}
-            textAnchor="middle" fill={`rgba(0,0,0,${0.3 * lblFade})`}
-            fontSize={9}
-          >→</text>
-        ))}
       </svg>
     </AbsoluteFill>
   );

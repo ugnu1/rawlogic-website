@@ -10,16 +10,16 @@ const MH  = 600;
 const INK = "#000000";
 
 // ── Layout zones ────────────────────────────────────────────
-const EMIT_CX = MW / 2;
-const EMIT_CY = 68;
+const EMIT_CX = MW / 2;   // 150
+const EMIT_CY = 75;
 
-const BOX_X_M = 35;       const BOX_Y_M = 118;
+const BOX_X_M = 35;       const BOX_Y_M = 125;
 const BOX_W_M = 230;      const BOX_H_M = 200;
-const BOX_BOT = BOX_Y_M + BOX_H_M;   // 318
+const BOX_BOT = BOX_Y_M + BOX_H_M;   // 325
 const BOX_R_M = BOX_X_M + BOX_W_M;   // 265
 
 const SYM_CX_M = MW / 2;
-const SYM_CY_M = 500;
+const SYM_CY_M = 508;
 
 const LANE_X_M: [number, number, number] = [
   Math.round(BOX_X_M + BOX_W_M * 0.25),
@@ -27,19 +27,18 @@ const LANE_X_M: [number, number, number] = [
   Math.round(BOX_X_M + BOX_W_M * 0.75),
 ];
 
-// Feeder entry y-positions
-const MARKT_Y_M  = Math.round(BOX_Y_M + BOX_H_M * 0.33); // ≈ 184
-const ARCHIV_Y_M = Math.round(BOX_Y_M + BOX_H_M * 0.67); // ≈ 252
+// Feeder entry y-positions (Marktdaten left, Archivdaten right)
+const MARKT_Y_M  = Math.round(BOX_Y_M + BOX_H_M * 0.33); // ≈ 191
+const ARCHIV_Y_M = Math.round(BOX_Y_M + BOX_H_M * 0.67); // ≈ 259
 
-// Feeder pipe extents (how far outside the box the pipes extend)
-const MARKT_PIPE_LEFT  = 3;         // left edge of Marktdaten pipe
-const ARCHIV_PIPE_RIGHT = MW - 3;   // right edge of Archivdaten pipe
+// Feeder pipe extents
+const MARKT_PIPE_LEFT   = 3;
+const ARCHIV_PIPE_RIGHT = MW - 3;
 
-// Zone labels
+// Zone labels — "DATEN-SYNCHRONISATION" pushed well below box bottom
 const ZONE_LBLS_M = [
-  { x: MW / 2, y: 22,  text: "ROHDATEN"              },
-  { x: MW / 2, y: 334, text: "DATEN-SYNCHRONISATION" },
-  { x: MW / 2, y: 572, text: "AUTONOMER WORKFLOW"    },
+  { x: MW / 2, y: 370, text: "DATEN-SYNCHRONISATION" },
+  { x: MW / 2, y: 580, text: "AUTONOMER WORKFLOW"    },
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -96,7 +95,7 @@ function particleMobile(frame: number, fps: number, i: number) {
   return { x, y, color: lerpColor(ct), opacity, r: 2.4 + ct * 1.6, ct };
 }
 
-// ── Feeder particle helper ───────────────────────────────────
+// ── Feeder particles (horizontal) ───────────────────────────
 const N_FEED = 4;
 
 function feederParticlesH(
@@ -151,17 +150,17 @@ export const MobileRefinery: React.FC = () => {
   const scanY  = BOX_Y_M + scanT * BOX_H_M;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
-  // Feeder fade-in
-  const feedOp = Math.max(0, (boxBuild - 0.35) / 0.65);
-
-  // Feeder particles — Marktdaten flows left→right into box left wall
-  //                    Archivdaten flows right→left into box right wall
-  const marktFeed  = feederParticlesH(frame, fps, MARKT_PIPE_LEFT, BOX_X_M,   MARKT_Y_M);
+  const feedOp     = Math.max(0, (boxBuild - 0.35) / 0.65);
+  const marktFeed  = feederParticlesH(frame, fps, MARKT_PIPE_LEFT,   BOX_X_M, MARKT_Y_M);
   const archivFeed = feederParticlesH(frame, fps, ARCHIV_PIPE_RIGHT, BOX_R_M, ARCHIV_Y_M);
 
   const CL      = 12;
   const goldRGB = "rgb(196,150,28)";
   const PORT_R  = 4;
+
+  // Center x of left and right margins for rotated labels
+  const MARGIN_LEFT_CX  = BOX_X_M / 2;                   // 17.5
+  const MARGIN_RIGHT_CX = BOX_R_M + (MW - BOX_R_M) / 2;  // 282.5
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#ebebeb" }}>
@@ -182,6 +181,17 @@ export const MobileRefinery: React.FC = () => {
           </filter>
         </defs>
 
+        {/* ── Main process title (replaces ROHDATEN) ─────────
+             Centered at top, explains the full process.        */}
+        <text
+          x={MW / 2} y={18}
+          textAnchor="middle"
+          fill="#000000"
+          fontSize={9} fontWeight="700"
+          fontFamily="ui-monospace, monospace" letterSpacing={0.8}
+          opacity={lblFade}
+        >DATEN-VEREDELUNGS-PROZESS</text>
+
         {/* Zone separator dashed lines */}
         {[BOX_Y_M, BOX_BOT].map((ly, i) => (
           <line key={i} x1={14} y1={ly} x2={MW - 14} y2={ly}
@@ -194,7 +204,6 @@ export const MobileRefinery: React.FC = () => {
           fill="rgba(0,0,0,0.02)" stroke={INK} strokeWidth={2}
           strokeDasharray={PERIM_M} strokeDashoffset={PERIM_M * (1 - boxBuild)} />
 
-        {/* Corner marks */}
         {boxBuild > 0.85 && [
           { x: BOX_X_M,   y: BOX_Y_M,  dx:  1, dy:  1 },
           { x: BOX_R_M,   y: BOX_Y_M,  dx: -1, dy:  1 },
@@ -206,53 +215,42 @@ export const MobileRefinery: React.FC = () => {
             fill="none" stroke={INK} strokeWidth={1.5} />
         ))}
 
-        {/* Box title */}
         <text x={MW / 2} y={BOX_Y_M + 16}
           textAnchor="middle" fill={INK} fontSize={9}
           fontFamily="ui-monospace, monospace" letterSpacing={2.5}
           opacity={boxBuild}
         >RAWLOGIC KERN</text>
 
-        {/* Lane guide lines */}
         {LANE_X_M.map((lx, k) => (
           <line key={k} x1={lx} y1={BOX_Y_M + 6} x2={lx} y2={BOX_BOT - 6}
             stroke={`rgba(0,0,0,${0.06 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
-        {/* Scanning horizontal line */}
         <line x1={BOX_X_M + 2} y1={scanY} x2={BOX_R_M - 2} y2={scanY}
           stroke={`rgba(196,150,28,${scanOp})`} strokeWidth={1} />
 
-        {/* Status */}
         <text x={BOX_R_M - 6} y={BOX_BOT - 6}
           textAnchor="end" fill={`rgba(0,0,0,${0.3 * boxBuild})`}
           fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
         >STATUS: AKTIV</text>
 
         {/* ══════════════════════════════════════════════════════
-            MARKTDATEN — horizontal injection pipe from left
+            MARKTDATEN — horizontal pipe from left
+            Label rotated -90° sits cleanly in the left margin.
             ══════════════════════════════════════════════════ */}
         <g opacity={feedOp}>
-          {/* Pipe */}
           <line x1={MARKT_PIPE_LEFT} y1={MARKT_Y_M} x2={BOX_X_M} y2={MARKT_Y_M}
             stroke={INK} strokeWidth={2} />
-          {/* Port square at box entry */}
-          <rect
-            x={BOX_X_M - PORT_R} y={MARKT_Y_M - PORT_R}
-            width={PORT_R * 2} height={PORT_R * 2}
-            fill={INK}
-          />
-          {/* Label — above pipe, two lines to fit in 35 px left margin */}
-          <text x={2} y={MARKT_Y_M - 9}
-            textAnchor="start" fill={INK}
-            fontSize={5.5} fontFamily="ui-monospace, monospace"
-          >MARKT-</text>
-          <text x={2} y={MARKT_Y_M - 2}
-            textAnchor="start" fill={INK}
-            fontSize={5.5} fontFamily="ui-monospace, monospace"
-          >DATEN</text>
-          {/* Flowing particles (left edge → box) */}
+          <rect x={BOX_X_M - PORT_R} y={MARKT_Y_M - PORT_R}
+            width={PORT_R * 2} height={PORT_R * 2} fill={INK} />
+          {/* Rotated label in left margin — no overlap with pipe or box */}
+          <text
+            x={MARGIN_LEFT_CX} y={MARKT_Y_M}
+            textAnchor="middle" fill={INK}
+            fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
+            transform={`rotate(-90, ${MARGIN_LEFT_CX}, ${MARKT_Y_M})`}
+          >MARKTDATEN</text>
           {marktFeed.map((p, i) => (
             <circle key={i} cx={p.x} cy={p.y} r={2.2}
               fill="rgb(148,148,148)" opacity={p.op} />
@@ -260,28 +258,21 @@ export const MobileRefinery: React.FC = () => {
         </g>
 
         {/* ══════════════════════════════════════════════════════
-            ARCHIVDATEN — horizontal injection pipe from right
+            ARCHIVDATEN — horizontal pipe from right
+            Label rotated +90° sits cleanly in the right margin.
             ══════════════════════════════════════════════════ */}
         <g opacity={feedOp}>
-          {/* Pipe */}
           <line x1={BOX_R_M} y1={ARCHIV_Y_M} x2={ARCHIV_PIPE_RIGHT} y2={ARCHIV_Y_M}
             stroke={INK} strokeWidth={2} />
-          {/* Port square at box entry */}
-          <rect
-            x={BOX_R_M - PORT_R} y={ARCHIV_Y_M - PORT_R}
-            width={PORT_R * 2} height={PORT_R * 2}
-            fill={INK}
-          />
-          {/* Label — above pipe, two lines to fit in 35 px right margin */}
-          <text x={MW - 2} y={ARCHIV_Y_M - 9}
-            textAnchor="end" fill={INK}
-            fontSize={5.5} fontFamily="ui-monospace, monospace"
-          >ARCHIV-</text>
-          <text x={MW - 2} y={ARCHIV_Y_M - 2}
-            textAnchor="end" fill={INK}
-            fontSize={5.5} fontFamily="ui-monospace, monospace"
-          >DATEN</text>
-          {/* Flowing particles (right edge → box) */}
+          <rect x={BOX_R_M - PORT_R} y={ARCHIV_Y_M - PORT_R}
+            width={PORT_R * 2} height={PORT_R * 2} fill={INK} />
+          {/* Rotated label in right margin */}
+          <text
+            x={MARGIN_RIGHT_CX} y={ARCHIV_Y_M}
+            textAnchor="middle" fill={INK}
+            fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
+            transform={`rotate(90, ${MARGIN_RIGHT_CX}, ${ARCHIV_Y_M})`}
+          >ARCHIVDATEN</text>
           {archivFeed.map((p, i) => (
             <circle key={i} cx={p.x} cy={p.y} r={2.2}
               fill="rgb(148,148,148)" opacity={p.op} />
@@ -299,7 +290,6 @@ export const MobileRefinery: React.FC = () => {
           opacity={0.9 * boxBuild}
         >DATENQUELLE</text>
 
-        {/* Flow arrows */}
         {[BOX_Y_M - 14, BOX_BOT + 14].map((ay, k) => (
           <text key={k} x={EMIT_CX} y={ay}
             textAnchor="middle" fill={INK} fontSize={13}
