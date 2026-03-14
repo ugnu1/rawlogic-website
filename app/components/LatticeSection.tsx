@@ -39,14 +39,14 @@ export default function LatticeSection() {
         </p>
       </div>
 
-      {/* Desktop: panorama centered, max 1260 px, background fills full width (≥ md) */}
-      <div className="hidden md:block w-full bg-[#ebebeb]">
-        <div className="mx-auto" style={{ maxWidth: "1260px" }}>
+      {/* Desktop: fills full width up to 1600 px, then centers (≥ md) */}
+      <div className="hidden md:flex justify-center items-center w-full bg-[#ebebeb]">
+        <div className="w-full" style={{ maxWidth: "1600px" }}>
           <RemotionPlayerWrapper />
         </div>
       </div>
 
-      {/* Mobile: vertical gravity drop, full width (< md) */}
+      {/* Mobile: full-width vertical gravity drop (< md) */}
       <div className="block md:hidden w-full bg-[#ebebeb]">
         <MobileRefineryPlayer />
       </div>
