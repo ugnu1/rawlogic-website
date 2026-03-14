@@ -1,35 +1,37 @@
-// Remotion composition: "Digitale Raffinerie" — Horizontal workflow
-// Raw particles → RAWLOGIC CORE box (grey→gold) → single Autonomous Workflow symbol
+// Remotion composition: "Digitale Raffinerie" — Vertical mobile workflow
+// Raw particles fall from emitter → RAWLOGIC CORE box (grey→gold) → single Workflow symbol
 
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remotion";
 
 // ── Canvas ──────────────────────────────────────────────────
-const W   = 1260;
-const H   = 300;
+const MW  = 300;
+const MH  = 600;
 const INK = "#1a1a1a";
 
-// ── Layout zones ────────────────────────────────────────────
-const EMIT_X  = 58;                           // emitter dot
-const BOX_X   = 230; const BOX_Y = 50;        // core box top-left
-const BOX_W   = 510; const BOX_H = 172;       // core box size
-const BOX_R   = BOX_X + BOX_W;               // 740
-const SYM_CX  = 990;                          // single symbol centre x
-const SYM_CY  = H / 2;                        // 150 — symbol centre y
+// ── Layout zones (vertical) ─────────────────────────────────
+const EMIT_CX = MW / 2;   // 150 — emitter centre x
+const EMIT_CY = 55;       // emitter centre y
 
-// Lane y-positions (three refinery tracks inside box)
-const LANE_Y: [number, number, number] = [
-  BOX_Y + 34,   // 84
-  BOX_Y + 86,   // 136
-  BOX_Y + 138,  // 188
+const BOX_X_M = 35;       const BOX_Y_M = 105;
+const BOX_W_M = 230;      const BOX_H_M = 200;
+const BOX_BOT = BOX_Y_M + BOX_H_M;   // 305
+
+const SYM_CX_M = MW / 2;   // 150
+const SYM_CY_M = 490;
+
+// Three vertical lane tracks inside box (x-positions)
+const LANE_X_M: [number, number, number] = [
+  Math.round(BOX_X_M + BOX_W_M * 0.25),  // ≈ 92
+  Math.round(BOX_X_M + BOX_W_M * 0.5),   // 150 centre
+  Math.round(BOX_X_M + BOX_W_M * 0.75),  // ≈ 207
 ];
 
-// Zone label x-positions
-const ZLABEL_Y  = 272;
-const ZONE_LBLS = [
-  { x: (EMIT_X + BOX_X) / 2,       text: "[ RAW_INPUT ]"            },
-  { x: BOX_X + BOX_W / 2,          text: "[ ALGORITHMIC_REFINERY ]" },
-  { x: (BOX_R + W) / 2,            text: "[ AUTONOMOUS_WORKFLOW ]"  },
+// Zone labels
+const ZONE_LBLS_M = [
+  { x: MW / 2, y: 88,  text: "[ RAW_INPUT ]"            },
+  { x: MW / 2, y: 323, text: "[ ALGORITHMIC_REFINERY ]" },
+  { x: MW / 2, y: 565, text: "[ AUTONOMOUS_WORKFLOW ]"  },
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -43,44 +45,44 @@ function lerpColor(t: number) {
   return `rgb(${r},${g},${b})`;
 }
 
-// ── Particle system ─────────────────────────────────────────
+// ── Particle system (vertical gravity drop) ─────────────────
 const N = 24;
 
-function particle(frame: number, fps: number, i: number) {
-  const PERIOD  = fps * 2.6;
-  const offset  = (i / N) * PERIOD;
-  const t       = ((frame + offset) % PERIOD) / PERIOD;
-  const lane    = i % 3 as 0 | 1 | 2;
+function particleMobile(frame: number, fps: number, i: number) {
+  const PERIOD = fps * 2.6;
+  const offset = (i / N) * PERIOD;
+  const t      = ((frame + offset) % PERIOD) / PERIOD;
+  const lane   = i % 3 as 0 | 1 | 2;
 
-  // ── X ──
   const PRE = 0.38, MID = 0.66;
-  let x: number;
+
+  // ── Y ── fall from emitter through box to symbol
+  let y: number;
   if (t < PRE) {
-    x = EMIT_X + (BOX_X - EMIT_X) * (t / PRE);
+    y = EMIT_CY + (BOX_Y_M - EMIT_CY) * (t / PRE);
   } else if (t < MID) {
-    x = BOX_X + BOX_W * ((t - PRE) / (MID - PRE));
+    y = BOX_Y_M + BOX_H_M * ((t - PRE) / (MID - PRE));
   } else {
     const p = (t - MID) / (1 - MID);
     const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
-    x = BOX_R + (SYM_CX - BOX_R) * e;
+    y = BOX_BOT + (SYM_CY_M - BOX_BOT) * e;
   }
 
-  // ── Y ── scatter entry → align to lane inside box → converge to symbol centre
-  const scatter = (i * 37 % 80) - 40;
-  const entryY  = LANE_Y[1] + scatter;
-  const laneY   = LANE_Y[lane];
-  let y: number;
+  // ── X ── scatter entry → align to lane track inside box → converge to centre
+  const scatter = (i * 37 % 60) - 30;
+  const entryX  = EMIT_CX + scatter;
+  const laneX   = LANE_X_M[lane];
+  let x: number;
   if (t < 0.33) {
-    y = entryY + Math.sin(frame * 0.07 + i * 1.4) * 4;
+    x = entryX + Math.sin(frame * 0.07 + i * 1.4) * 4;
   } else if (t < MID) {
     const p = (t - 0.33) / (MID - 0.33);
     const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
-    y = entryY + (laneY - entryY) * e;
+    x = entryX + (laneX - entryX) * e;
   } else {
-    // converge all lanes to the single symbol centre
     const p2 = (t - MID) / (1 - MID);
     const e2 = p2 < 0.5 ? 2 * p2 * p2 : 1 - (-2 * p2 + 2) ** 2 / 2;
-    y = laneY + (SYM_CY - laneY) * e2;
+    x = laneX + (SYM_CX_M - laneX) * e2;
   }
 
   // ── Color progress ──
@@ -101,15 +103,15 @@ function ei(frame: number, a: number, b: number) {
 }
 
 // ── Main composition ────────────────────────────────────────
-export const AutonomousGrid: React.FC = () => {
+export const MobileRefinery: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const parts     = Array.from({ length: N }, (_, i) => particle(frame, fps, i));
-  const boxBuild  = ei(frame, 0, 28);
-  const partFade  = ei(frame, 18, 55);
-  const symEntry  = ei(frame, 38, 62);
-  const lblFade   = ei(frame, 45, 62);
+  const parts    = Array.from({ length: N }, (_, i) => particleMobile(frame, fps, i));
+  const boxBuild = ei(frame, 0, 28);
+  const partFade = ei(frame, 18, 55);
+  const symEntry = ei(frame, 38, 62);
+  const lblFade  = ei(frame, 45, 62);
 
   // Symbol rotation & pulse
   const rot   = (frame * 0.5) * Math.PI / 180;
@@ -117,39 +119,39 @@ export const AutonomousGrid: React.FC = () => {
 
   // Flash when a golden particle reaches the symbol
   const hitFlash = parts.reduce((max, p) => {
-    const dx = p.x - SYM_CX;
-    const dy = p.y - SYM_CY;
+    const dx = p.x - SYM_CX_M;
+    const dy = p.y - SYM_CY_M;
     if (Math.sqrt(dx * dx + dy * dy) < 32 && p.ct > 0.75) {
       return Math.max(max, p.opacity);
     }
     return max;
   }, 0);
 
-  // Box perimeter draw animation
-  const PERIM   = 2 * (BOX_W + BOX_H);
-  const boxPath = `M ${BOX_X},${BOX_Y} h ${BOX_W} v ${BOX_H} h ${-BOX_W} Z`;
+  // Box perimeter draw
+  const PERIM_M = 2 * (BOX_W_M + BOX_H_M);
+  const boxPath = `M ${BOX_X_M},${BOX_Y_M} h ${BOX_W_M} v ${BOX_H_M} h ${-BOX_W_M} Z`;
 
-  // Scanning line inside box
+  // Scanning horizontal line (sweeps downward)
   const SCAN_P = fps * 2.4;
   const scanT  = (frame % SCAN_P) / SCAN_P;
-  const scanX  = BOX_X + scanT * BOX_W;
+  const scanY  = BOX_Y_M + scanT * BOX_H_M;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
-  const proc     = ((frame * 2) % 9999) | 0;
-  const CL       = 14;
-  const goldRGB  = "rgb(196,150,28)";
+  const proc    = ((frame * 2) % 9999) | 0;
+  const CL      = 12;
+  const goldRGB = "rgb(196,150,28)";
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#ebebeb" }}>
       <svg
-        viewBox={`0 0 ${W} ${H}`}
-        width={W}
-        height={H}
+        viewBox={`0 0 ${MW} ${MH}`}
+        width={MW}
+        height={MH}
         style={{ width: "100%", height: "100%" }}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <filter id="fg" x="-70%" y="-70%" width="240%" height="240%">
+          <filter id="fg-m" x="-70%" y="-70%" width="240%" height="240%">
             <feGaussianBlur stdDeviation="2.8" result="b" />
             <feMerge>
               <feMergeNode in="b" />
@@ -158,9 +160,9 @@ export const AutonomousGrid: React.FC = () => {
           </filter>
         </defs>
 
-        {/* ── Zone separator dashed lines ─────────────────── */}
-        {[BOX_X, BOX_R].map((lx, i) => (
-          <line key={i} x1={lx} y1={14} x2={lx} y2={245}
+        {/* ── Zone separator dashed lines (horizontal) ─────── */}
+        {[BOX_Y_M, BOX_BOT].map((ly, i) => (
+          <line key={i} x1={14} y1={ly} x2={MW - 14} y2={ly}
             stroke={`rgba(26,26,26,${0.1 * boxBuild})`}
             strokeWidth={1} strokeDasharray="4 5" />
         ))}
@@ -171,16 +173,16 @@ export const AutonomousGrid: React.FC = () => {
           fill="rgba(26,26,26,0.02)"
           stroke={INK}
           strokeWidth={2}
-          strokeDasharray={PERIM}
-          strokeDashoffset={PERIM * (1 - boxBuild)}
+          strokeDasharray={PERIM_M}
+          strokeDashoffset={PERIM_M * (1 - boxBuild)}
         />
 
         {/* Corner marks */}
         {boxBuild > 0.85 && [
-          { x: BOX_X, y: BOX_Y,          dx:  1, dy:  1 },
-          { x: BOX_R, y: BOX_Y,          dx: -1, dy:  1 },
-          { x: BOX_X, y: BOX_Y + BOX_H,  dx:  1, dy: -1 },
-          { x: BOX_R, y: BOX_Y + BOX_H,  dx: -1, dy: -1 },
+          { x: BOX_X_M,            y: BOX_Y_M,           dx:  1, dy:  1 },
+          { x: BOX_X_M + BOX_W_M,  y: BOX_Y_M,           dx: -1, dy:  1 },
+          { x: BOX_X_M,            y: BOX_BOT,            dx:  1, dy: -1 },
+          { x: BOX_X_M + BOX_W_M,  y: BOX_BOT,            dx: -1, dy: -1 },
         ].map(({ x, y, dx, dy }, k) => (
           <path key={k}
             d={`M ${x + dx * CL},${y} L ${x},${y} L ${x},${y + dy * CL}`}
@@ -189,7 +191,7 @@ export const AutonomousGrid: React.FC = () => {
         ))}
 
         {/* Box title */}
-        <text x={BOX_X + BOX_W / 2} y={BOX_Y + 15}
+        <text x={MW / 2} y={BOX_Y_M + 15}
           textAnchor="middle" fill={INK} fontSize={9}
           fontFamily="ui-monospace, monospace" letterSpacing={2.5}
           opacity={boxBuild}
@@ -197,19 +199,19 @@ export const AutonomousGrid: React.FC = () => {
           RAWLOGIC CORE
         </text>
 
-        {/* Lane guide lines (faint dashes — the three refinery tracks) */}
-        {LANE_Y.map((ly, k) => (
-          <line key={k} x1={BOX_X + 6} y1={ly} x2={BOX_R - 6} y2={ly}
+        {/* Lane guide lines (vertical dashes — three parallel tracks) */}
+        {LANE_X_M.map((lx, k) => (
+          <line key={k} x1={lx} y1={BOX_Y_M + 6} x2={lx} y2={BOX_BOT - 6}
             stroke={`rgba(26,26,26,${0.055 * boxBuild})`}
             strokeWidth={1} strokeDasharray="6 6" />
         ))}
 
-        {/* Scanning vertical line */}
-        <line x1={scanX} y1={BOX_Y + 2} x2={scanX} y2={BOX_Y + BOX_H - 2}
+        {/* Scanning horizontal line */}
+        <line x1={BOX_X_M + 2} y1={scanY} x2={BOX_X_M + BOX_W_M - 2} y2={scanY}
           stroke={`rgba(196,150,28,${scanOp})`} strokeWidth={1} />
 
         {/* Process counter */}
-        <text x={BOX_R - 8} y={BOX_Y + BOX_H - 6}
+        <text x={BOX_X_M + BOX_W_M - 6} y={BOX_BOT - 6}
           textAnchor="end"
           fill={`rgba(26,26,26,${0.22 * boxBuild})`}
           fontSize={7} fontFamily="ui-monospace, monospace"
@@ -218,25 +220,25 @@ export const AutonomousGrid: React.FC = () => {
         </text>
 
         {/* ── Emitter ─────────────────────────────────────── */}
-        <circle cx={EMIT_X} cy={LANE_Y[1]} r={6}
+        <circle cx={EMIT_CX} cy={EMIT_CY} r={6}
           fill="none" stroke={INK} strokeWidth={1.5}
           opacity={boxBuild} />
-        <circle cx={EMIT_X} cy={LANE_Y[1]} r={2.2}
+        <circle cx={EMIT_CX} cy={EMIT_CY} r={2.2}
           fill={INK} opacity={boxBuild} />
-        <text x={EMIT_X} y={BOX_Y - 10}
-          textAnchor="middle" fill={`rgba(26,26,26,0.45)`}
+        <text x={EMIT_CX + 16} y={EMIT_CY + 4}
+          fill={`rgba(26,26,26,0.45)`}
           fontSize={7} fontFamily="ui-monospace, monospace"
           opacity={boxBuild}
         >
           EMIT
         </text>
 
-        {/* Flow arrows */}
-        {[BOX_X - 14, BOX_R + 14].map((ax, k) => (
-          <text key={k} x={ax} y={LANE_Y[1] + 5}
+        {/* Flow arrows (down) */}
+        {[BOX_Y_M - 12, BOX_BOT + 12].map((ay, k) => (
+          <text key={k} x={EMIT_CX} y={ay}
             textAnchor="middle" fill={INK} fontSize={13}
             opacity={0.22 * boxBuild}
-          >→</text>
+          >↓</text>
         ))}
 
         {/* ── Particles ──────────────────────────────────── */}
@@ -246,58 +248,49 @@ export const AutonomousGrid: React.FC = () => {
             cx={p.x} cy={p.y} r={p.r}
             fill={p.color}
             opacity={p.opacity * partFade}
-            filter={p.ct > 0.45 ? "url(#fg)" : undefined}
+            filter={p.ct > 0.45 ? "url(#fg-m)" : undefined}
           />
         ))}
 
         {/* ── Autonomous Workflow Symbol ───────────────────
-             Outer hexagon rotates slowly.
-             Inner hexagon counter-rotates and pulses.
-             Both flash gold when a refined particle arrives. */}
+             Large — outer rotating hex, inner counter-rotating pulse hex,
+             centre dot. Flashes gold when refined particles arrive. */}
         {(() => {
           const outerPts = Array.from({ length: 6 }, (_, k) => {
             const a = k * Math.PI / 3 + rot;
-            return `${SYM_CX + Math.cos(a) * 26 * symEntry},${SYM_CY + Math.sin(a) * 26 * symEntry}`;
+            return `${SYM_CX_M + Math.cos(a) * 34 * symEntry},${SYM_CY_M + Math.sin(a) * 34 * symEntry}`;
           }).join(" ");
           const innerPts = Array.from({ length: 6 }, (_, k) => {
             const a = k * Math.PI / 3 - rot * 0.6;
-            return `${SYM_CX + Math.cos(a) * 15 * symEntry * pulse},${SYM_CY + Math.sin(a) * 15 * symEntry * pulse}`;
+            return `${SYM_CX_M + Math.cos(a) * 20 * symEntry * pulse},${SYM_CY_M + Math.sin(a) * 20 * symEntry * pulse}`;
           }).join(" ");
           const isHit      = hitFlash > 0.3;
           const strokeCol  = isHit ? goldRGB : INK;
           const flashAlpha = symEntry * (0.75 + hitFlash * 0.45);
           return (
-            <g filter={hitFlash > 0.5 ? "url(#fg)" : undefined}>
+            <g filter={hitFlash > 0.5 ? "url(#fg-m)" : undefined}>
               <polygon points={outerPts} fill="none"
-                stroke={strokeCol} strokeWidth={isHit ? 2.5 : 1.5}
+                stroke={strokeCol} strokeWidth={isHit ? 3 : 2}
                 opacity={flashAlpha} />
               <polygon points={innerPts} fill="none"
-                stroke={goldRGB} strokeWidth={1}
+                stroke={goldRGB} strokeWidth={1.5}
                 opacity={symEntry * (0.35 + hitFlash * 0.45)} />
-              <circle cx={SYM_CX} cy={SYM_CY} r={5 * symEntry}
+              <circle cx={SYM_CX_M} cy={SYM_CY_M} r={6 * symEntry}
                 fill={isHit ? goldRGB : INK}
                 opacity={flashAlpha} />
             </g>
           );
         })()}
 
-        {/* ── Zone labels + arrows at bottom ─────────────── */}
-        {ZONE_LBLS.map(({ x, text }, k) => (
-          <text key={k} x={x} y={ZLABEL_Y}
+        {/* ── Zone labels ─────────────────────────────────── */}
+        {ZONE_LBLS_M.map(({ x, y, text }, k) => (
+          <text key={k} x={x} y={y}
             textAnchor="middle"
             fill={`rgba(26,26,26,${0.42 * lblFade})`}
-            fontSize={8} fontFamily="ui-monospace, monospace" letterSpacing={1}
+            fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={1}
           >
             {text}
           </text>
-        ))}
-
-        {/* Arrows between zone labels */}
-        {[BOX_X - 18, BOX_R + 18].map((ax, k) => (
-          <text key={k} x={ax + (k === 0 ? 0 : 24)} y={ZLABEL_Y}
-            textAnchor="middle" fill={`rgba(26,26,26,${0.22 * lblFade})`}
-            fontSize={9}
-          >→</text>
         ))}
       </svg>
     </AbsoluteFill>

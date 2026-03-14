@@ -9,8 +9,21 @@ const RemotionPlayerWrapper = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="w-full bg-[#04040a]"
+        className="w-full bg-[#ebebeb]"
         style={{ aspectRatio: "1260 / 300" }}
+      />
+    ),
+  }
+);
+
+const MobileRefineryPlayer = dynamic(
+  () => import("./MobileRefineryPlayer"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="w-full bg-[#ebebeb]"
+        style={{ aspectRatio: "300 / 600" }}
       />
     ),
   }
@@ -19,15 +32,22 @@ const RemotionPlayerWrapper = dynamic(
 export default function LatticeSection() {
   return (
     <div className="border-b border-zinc-300 w-full overflow-hidden">
-      {/* Section label — matches other section headers */}
+      {/* Section label */}
       <div className="border-b border-zinc-300 bg-zinc-200/50 px-8 py-4 sm:px-12">
         <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase">
           Live Render &nbsp;·&nbsp; Autonome Infrastruktur
         </p>
       </div>
 
-      {/* Remotion player — fills full width, dark background */}
-      <RemotionPlayerWrapper />
+      {/* Desktop: wide panorama (≥ md) */}
+      <div className="hidden md:block">
+        <RemotionPlayerWrapper />
+      </div>
+
+      {/* Mobile: vertical gravity drop (< md) */}
+      <div className="block md:hidden">
+        <MobileRefineryPlayer />
+      </div>
     </div>
   );
 }
