@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Cpu, BarChart2, Factory, ArrowRight } from "lucide-react";
 
 const divisions = [
@@ -39,9 +40,14 @@ export default function Home() {
       {/* Nav */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#080810]/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-sm font-semibold tracking-widest text-white/90 uppercase">
-            Raw<span className="text-blue-400">Logic</span>
-          </span>
+          <Image
+            src="/rawlogic-font-web3.png"
+            alt="RawLogic"
+            width={160}
+            height={40}
+            className="object-contain"
+            priority
+          />
           <nav className="hidden gap-8 text-sm text-white/40 sm:flex">
             <a href="#divisions" className="transition hover:text-white/80">Divisionen</a>
             <a href="#contact" className="transition hover:text-white/80">Kontakt</a>
@@ -188,9 +194,13 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-white/5 px-6 py-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between text-xs text-white/20">
-          <span>
-            Raw<span className="text-blue-400/60">Logic</span>
-          </span>
+          <Image
+            src="/rawlogic-font-web3.png"
+            alt="RawLogic"
+            width={120}
+            height={30}
+            className="object-contain opacity-40"
+          />
           <span>© 2026 RawLogic. Alle Rechte vorbehalten.</span>
         </div>
       </footer>
