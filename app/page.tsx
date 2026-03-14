@@ -36,7 +36,7 @@ const params = [
 
 export default function Home() {
   return (
-    <div className={`min-h-screen bg-[#e8e8e8] text-[#0a0a0a] font-sans antialiased`}>
+    <div className={`min-h-screen bg-[#e8e8e8] text-[#1a1a1a] font-sans antialiased`}>
 
       {/* ── HEADER ───────────────────────────────────────────── */}
       <header className={`border-b ${BORDER}`}>
@@ -52,7 +52,7 @@ export default function Home() {
             />
           </div>
           <div className="px-6 py-4">
-            <a href="#kontakt" className="font-mono text-[11px] tracking-[0.18em] text-[#0a0a0a]/50 uppercase transition-colors hover:text-[#0a0a0a]">
+            <a href="#kontakt" className="font-mono text-[11px] tracking-[0.18em] text-[#1a1a1a]/55 uppercase transition-colors hover:text-[#1a1a1a]">
               [ KONTAKT ]
             </a>
           </div>
@@ -65,18 +65,18 @@ export default function Home() {
 
           {/* Left: Headline */}
           <div className={`border-b lg:border-b-0 lg:border-r ${BORDER} px-6 pt-16 pb-14`}>
-            <h1 className="text-[clamp(2.6rem,7.5vw,6.5rem)] font-black leading-[0.9] tracking-[-0.04em] text-[#0a0a0a] uppercase mb-10">
+            <h1 className="text-[clamp(2.6rem,7.5vw,6.5rem)] font-black leading-[0.9] tracking-[-0.04em] text-[#1a1a1a] uppercase mb-10">
               AUTONOME<br />INFRA-<br />STRUKTUR.
             </h1>
             <div className="flex items-center gap-3 mb-12">
               <span className="h-2 w-2 rounded-full bg-red-600 shrink-0" />
-              <p className="font-mono text-[11px] tracking-[0.1em] text-[#0a0a0a]/45">
+              <p className="font-mono text-[11px] tracking-[0.1em] text-[#1a1a1a]/60">
                 [ STAND: 14.03.2026 // SYSTEM_STATUS: ONLINE ]
               </p>
             </div>
             <a
               href="#kontakt"
-              className={`inline-block border ${BORDER} border-[#0a0a0a] px-6 py-3 font-mono text-[11px] tracking-[0.2em] uppercase text-[#0a0a0a] transition-all hover:bg-[#0a0a0a] hover:text-[#e8e8e8]`}
+              className={`inline-block border ${BORDER} border-[#0a0a0a] px-6 py-3 font-mono text-[11px] tracking-[0.2em] uppercase text-[#1a1a1a] transition-all hover:bg-[#1a1a1a] hover:text-[#e8e8e8]`}
             >
               [ ZUGANG_ANFRAGEN ]
             </a>
@@ -84,21 +84,21 @@ export default function Home() {
 
           {/* Right: System block */}
           <div className="px-6 pt-8 pb-8">
-            <p className={`font-mono text-[9px] tracking-[0.22em] text-[#0a0a0a]/30 uppercase mb-0 pb-3 border-b ${BORDER}`}>
+            <p className={`font-mono text-[9px] tracking-[0.22em] text-[#1a1a1a]/45 uppercase mb-0 pb-3 border-b ${BORDER}`}>
               SYSTEMPARAMETER
             </p>
             <div className="divide-y divide-[#cccccc]">
               {params.map(({ key, value }) => (
                 <div key={key} className="flex justify-between items-baseline py-3">
-                  <span className="font-mono text-[10px] text-[#0a0a0a]/35">{key}</span>
-                  <span className="font-mono text-[10px] text-[#0a0a0a]/70">{value}</span>
+                  <span className="font-mono text-[10px] text-[#1a1a1a]/50">{key}</span>
+                  <span className="font-mono text-[10px] text-[#1a1a1a]/70">{value}</span>
                 </div>
               ))}
             </div>
 
             <div className={`mt-6 pt-6 border-t ${BORDER}`}>
-              <p className={`font-mono text-[9px] tracking-[0.18em] text-[#0a0a0a]/25 uppercase mb-3`}>MISSION_STATEMENT</p>
-              <p className="font-mono text-[11px] leading-[1.75] text-[#0a0a0a]/50">
+              <p className={`font-mono text-[9px] tracking-[0.18em] text-[#1a1a1a]/40 uppercase mb-3`}>MISSION_STATEMENT</p>
+              <p className="font-mono text-[11px] leading-[1.75] text-[#1a1a1a]/65">
                 WIR ERSETZEN KEINE MENSCHEN.<br />
                 WIR ERSETZEN ROBOTERHAFTE PROZESSE.
               </p>
@@ -108,15 +108,22 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── TRUST STRIP ──────────────────────────────────────── */}
+      <div className={`border-b ${BORDER} bg-zinc-200/40 px-6 py-3`}>
+        <p className="font-mono text-[9px] tracking-[0.2em] text-[#1a1a1a]/40 uppercase text-center">
+          ZERTIFIZIERTE DATENSICHERHEIT &nbsp;//&nbsp; HOSTED IN GERMANY
+        </p>
+      </div>
+
       {/* ── DIVISIONS ────────────────────────────────────────── */}
       <section id="divisionen" className={`border-b ${BORDER}`}>
 
         {/* Section header row */}
-        <div className={`grid grid-cols-[4rem_6rem_10rem_1fr] border-b ${BORDER} bg-[#0a0a0a]/[0.03]`}>
+        <div className={`grid grid-cols-[4rem_6rem_10rem_1fr] border-b border-zinc-300 bg-zinc-200/50`}>
           {["ID", "EINHEIT", "FUNKTION", "BESCHREIBUNG"].map((h, i) => (
             <div
               key={h}
-              className={`px-4 py-3 font-mono text-[9px] tracking-[0.2em] text-[#0a0a0a]/30 uppercase ${i < 3 ? `border-r ${BORDER}` : ""}`}
+              className={`px-4 py-3 font-mono text-[9px] tracking-[0.2em] text-[#1a1a1a]/45 uppercase ${i < 3 ? `border-r ${BORDER}` : ""}`}
             >
               {h}
             </div>
@@ -124,21 +131,21 @@ export default function Home() {
         </div>
 
         {/* Data rows */}
-        <div className={`divide-y divide-[#cccccc]`}>
+        <div className="divide-y divide-zinc-300">
           {divisions.map(({ id, unit, tag, function: fn }) => (
             <div key={id} className="grid grid-cols-[4rem_6rem_10rem_1fr]">
-              <div className={`px-4 py-5 border-r ${BORDER} font-mono text-[10px] text-[#0a0a0a]/30 self-start pt-5`}>
+              <div className={`px-4 py-5 border-r ${BORDER} font-mono text-[10px] text-[#1a1a1a]/45 self-start pt-5`}>
                 {id}
               </div>
-              <div className={`px-4 py-5 border-r ${BORDER} font-black text-sm tracking-[0.04em] text-[#0a0a0a] self-start`}>
+              <div className={`px-4 py-5 border-r ${BORDER} font-black text-sm tracking-[0.04em] text-[#1a1a1a] self-start`}>
                 {unit}
               </div>
               <div className={`px-4 py-5 border-r ${BORDER} self-start`}>
-                <span className={`inline-block border ${BORDER} px-2 py-1 font-mono text-[9px] tracking-[0.14em] text-[#0a0a0a]/50`}>
-                  [ {tag} ]
+                <span className="inline-block border border-zinc-300 px-2 py-1 font-mono text-[9px] tracking-[0.14em] text-[#1a1a1a]/55">
+                  {tag}
                 </span>
               </div>
-              <div className="px-4 py-5 font-mono text-[11px] leading-[1.7] text-[#0a0a0a]/50 self-start">
+              <div className="px-4 py-5 font-mono text-[11px] leading-[1.7] text-[#1a1a1a]/65 self-start">
                 {fn}
               </div>
             </div>
@@ -152,22 +159,22 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
 
           <div className={`border-b lg:border-b-0 lg:border-r ${BORDER} px-6 py-16`}>
-            <p className="font-mono text-[9px] tracking-[0.22em] text-[#0a0a0a]/25 uppercase mb-6">
+            <p className="font-mono text-[9px] tracking-[0.22em] text-[#1a1a1a]/40 uppercase mb-6">
               KONTAKT_AUFNEHMEN
             </p>
-            <h2 className="text-4xl font-black leading-[0.92] tracking-tight text-[#0a0a0a] uppercase sm:text-5xl mb-8">
+            <h2 className="text-4xl font-black leading-[0.92] tracking-tight text-[#1a1a1a] uppercase sm:text-5xl mb-8">
               ROBOTER-<br />HAFTE<br />PROZESSE<br />ELIMINIEREN.
             </h2>
             <a
               href="mailto:hello@rawlogic.io"
-              className={`inline-block border ${BORDER} border-[#0a0a0a] px-6 py-3 font-mono text-[11px] tracking-[0.2em] uppercase text-[#0a0a0a] transition-all hover:bg-[#0a0a0a] hover:text-[#e8e8e8]`}
+              className={`inline-block border ${BORDER} border-[#0a0a0a] px-6 py-3 font-mono text-[11px] tracking-[0.2em] uppercase text-[#1a1a1a] transition-all hover:bg-[#1a1a1a] hover:text-[#e8e8e8]`}
             >
               [ ZUGANG_ANFRAGEN ]
             </a>
           </div>
 
           <div className="px-6 py-16">
-            <p className="font-mono text-[9px] tracking-[0.22em] text-[#0a0a0a]/25 uppercase mb-6">
+            <p className="font-mono text-[9px] tracking-[0.22em] text-[#1a1a1a]/40 uppercase mb-6">
               DIREKTKONTAKT
             </p>
             <div className={`divide-y divide-[#cccccc]`}>
@@ -178,8 +185,8 @@ export default function Home() {
                 { label: "KOSTEN", value: "UNVERBINDLICH" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-baseline py-4">
-                  <span className="font-mono text-[10px] text-[#0a0a0a]/30">{label}</span>
-                  <span className="font-mono text-[10px] text-[#0a0a0a]/65">{value}</span>
+                  <span className="font-mono text-[10px] text-[#1a1a1a]/45">{label}</span>
+                  <span className="font-mono text-[10px] text-[#1a1a1a]/65">{value}</span>
                 </div>
               ))}
             </div>
@@ -201,7 +208,7 @@ export default function Home() {
             />
           </div>
           <div className="px-6 py-5">
-            <span className="font-mono text-[10px] tracking-[0.14em] text-[#0a0a0a]/25">
+            <span className="font-mono text-[10px] tracking-[0.14em] text-[#1a1a1a]/40">
               © 2026 RAWLOGIC
             </span>
           </div>
