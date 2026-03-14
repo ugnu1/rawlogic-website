@@ -46,7 +46,7 @@ export default function Home() {
           <div className="flex items-center px-6 py-5">
             <a
               href="#kontakt"
-              className="font-mono text-xs tracking-widest text-zinc-500 uppercase transition-colors hover:text-zinc-900"
+              className="font-mono text-xs tracking-widest text-zinc-600 uppercase transition-colors hover:text-zinc-900"
             >
               Kontakt
             </a>
@@ -59,35 +59,26 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-0">
 
           {/* Headline */}
-          <div className="border-b lg:border-b-0 lg:border-r border-zinc-300 p-6 sm:p-10 lg:p-12">
-            {/* Engineering label */}
-            <div className="flex items-center gap-2.5 mb-7">
-              <span className="h-2 w-2 bg-zinc-400 shrink-0" />
-              <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase">
-                Strategische Automatisierung &nbsp;·&nbsp; B2B Infrastruktur
-              </p>
-            </div>
-
-            <h1 className="text-[2.4rem] sm:text-[3.5rem] lg:text-[4.5rem] font-black leading-[0.92] tracking-[-0.03em] text-zinc-900 uppercase mb-7">
+          <div className="border-b lg:border-b-0 lg:border-r border-zinc-300 p-8 sm:p-12 lg:p-16">
+            <h1 className="text-[2.6rem] sm:text-[3.8rem] lg:text-[5rem] font-black leading-[0.9] tracking-[-0.03em] text-zinc-900 uppercase mb-8">
               AUTONOME<br />INFRA-<br />STRUKTUR.
             </h1>
 
-            {/* Hook */}
-            <p className="text-xl leading-relaxed text-zinc-700 mb-10 max-w-lg">
-              Wir lösen das Problem manueller Prozess-Sackgassen. RawLogic baut die autonome Brücke zwischen Ihren Daten und Ihren Operationen – für eine Belegschaft, die niemals schläft.
+            <p className="text-xl sm:text-2xl leading-relaxed text-zinc-800 mb-12 max-w-lg font-normal">
+              Infrastruktur, die sich selbst verwaltet und aktiv skaliert.
             </p>
 
             <a
               href="#kontakt"
-              className="inline-block bg-zinc-900 text-white px-7 py-3.5 text-sm font-semibold tracking-wide rounded-sm transition-colors hover:bg-zinc-700"
+              className="inline-block bg-zinc-900 text-white px-8 py-4 text-sm font-semibold tracking-wide rounded-sm transition-colors hover:bg-zinc-700"
             >
               Zugang anfragen
             </a>
           </div>
 
           {/* System params */}
-          <div className="p-6 sm:p-8">
-            <p className="font-mono text-xs tracking-widest text-zinc-400 uppercase pb-4 border-b border-zinc-300 mb-0">
+          <div className="p-8 sm:p-10">
+            <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase pb-4 border-b border-zinc-300">
               Systemparameter
             </p>
             <div className="divide-y divide-zinc-300">
@@ -99,16 +90,16 @@ export default function Home() {
                 { key: "Qualitätsstufe", value: "Production-Grade" },
                 { key: "Reaktionszeit", value: "< 24 Stunden" },
               ].map(({ key, value }) => (
-                <div key={key} className="flex justify-between items-baseline py-3 gap-4">
-                  <span className="font-mono text-xs text-zinc-400 shrink-0">{key}</span>
-                  <span className="font-mono text-xs text-zinc-700 text-right font-medium">{value}</span>
+                <div key={key} className="flex justify-between items-baseline py-3.5 gap-4">
+                  <span className="font-mono text-xs text-zinc-500 shrink-0">{key}</span>
+                  <span className="font-mono text-xs text-zinc-900 text-right font-semibold">{value}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-6 pt-6 border-t border-zinc-300">
-              <p className="font-mono text-xs tracking-widest text-zinc-400 uppercase mb-3">Mission</p>
-              <p className="text-sm leading-relaxed text-zinc-600">
-                Wir ersetzen keine Menschen.<br />
+            <div className="mt-8 pt-8 border-t border-zinc-300">
+              <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase mb-4">Mission</p>
+              <p className="text-base leading-relaxed text-zinc-700">
+                Wir ersetzen keine Menschen.{" "}
                 <span className="text-zinc-900 font-semibold">Wir ersetzen roboterhafte Prozesse.</span>
               </p>
             </div>
@@ -118,8 +109,8 @@ export default function Home() {
       </section>
 
       {/* ── TRUST STRIP ────────────────────────────────────── */}
-      <div className="border-b border-zinc-300 bg-zinc-200/50 px-6 py-3">
-        <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase text-center">
+      <div className="border-b border-zinc-300 bg-zinc-200/60 px-6 py-4">
+        <p className="font-mono text-xs tracking-widest text-zinc-600 uppercase text-center">
           Zertifizierte Datensicherheit &nbsp;·&nbsp; Hosted in Germany
         </p>
       </div>
@@ -127,25 +118,25 @@ export default function Home() {
       {/* ── DIVISIONEN ─────────────────────────────────────── */}
       <section id="divisionen" className="border-b border-zinc-300">
 
-        <div className="border-b border-zinc-300 bg-zinc-200/50 px-6 py-4 sm:px-10">
-          <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase">
+        <div className="border-b border-zinc-300 bg-zinc-200/60 px-8 py-5 sm:px-12">
+          <p className="font-mono text-xs tracking-widest text-zinc-600 uppercase">
             Divisionen &nbsp;·&nbsp; 03 Einheiten aktiv
           </p>
         </div>
 
         <div className="divide-y divide-zinc-300">
           {divisions.map(({ name, tag, hook, description }) => (
-            <div key={name} className="p-6 sm:p-10">
-              <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-5 mb-3">
-                <h3 className="text-xl font-black tracking-tight text-zinc-900 uppercase">
+            <div key={name} className="p-8 sm:p-12">
+              <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-5 mb-4">
+                <h3 className="text-2xl font-black tracking-tight text-zinc-900 uppercase">
                   {name}
                 </h3>
-                <span className="font-mono text-xs tracking-wide text-zinc-400 border border-zinc-300 px-2 py-0.5 self-start sm:self-auto">
+                <span className="font-mono text-xs tracking-wide text-zinc-500 border border-zinc-300 px-2.5 py-1 self-start sm:self-auto">
                   {tag}
                 </span>
               </div>
-              <p className="text-lg font-semibold text-zinc-900 mb-2">{hook}</p>
-              <p className="text-base leading-relaxed text-zinc-600 max-w-2xl">
+              <p className="text-lg font-semibold text-zinc-900 mb-3">{hook}</p>
+              <p className="text-base leading-relaxed text-zinc-700 max-w-2xl">
                 {description}
               </p>
             </div>
@@ -162,9 +153,9 @@ export default function Home() {
             { label: "Data Sovereignty", sub: "Ihre Daten, Ihre Kontrolle" },
             { label: "Production-Grade", sub: "Enterprise-Qualität ab Tag 1" },
           ].map(({ label, sub }) => (
-            <div key={label} className="p-6 sm:p-8">
-              <p className="text-base font-bold text-zinc-900 mb-1">{label}</p>
-              <p className="font-mono text-xs text-zinc-400">{sub}</p>
+            <div key={label} className="p-8 sm:p-10">
+              <p className="text-base font-bold text-zinc-900 mb-1.5">{label}</p>
+              <p className="font-mono text-xs text-zinc-500">{sub}</p>
             </div>
           ))}
         </div>
@@ -174,23 +165,23 @@ export default function Home() {
       <section id="kontakt" className="border-b border-zinc-300">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
 
-          <div className="border-b lg:border-b-0 lg:border-r border-zinc-300 p-6 sm:p-10 lg:p-12">
-            <p className="font-mono text-xs tracking-widest text-zinc-400 uppercase mb-5">
+          <div className="border-b lg:border-b-0 lg:border-r border-zinc-300 p-8 sm:p-12 lg:p-16">
+            <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase mb-6">
               Kontakt aufnehmen
             </p>
-            <h2 className="text-3xl sm:text-4xl font-black leading-[0.95] tracking-tight text-zinc-900 uppercase mb-8">
+            <h2 className="text-3xl sm:text-4xl font-black leading-[0.95] tracking-tight text-zinc-900 uppercase mb-10">
               ROBOTERHAFTE<br />PROZESSE<br />ELIMINIEREN.
             </h2>
             <a
               href="mailto:hello@rawlogic.io"
-              className="inline-block bg-zinc-900 text-white px-7 py-3.5 text-sm font-semibold tracking-wide rounded-sm transition-colors hover:bg-zinc-700"
+              className="inline-block bg-zinc-900 text-white px-8 py-4 text-sm font-semibold tracking-wide rounded-sm transition-colors hover:bg-zinc-700"
             >
               Zugang anfragen
             </a>
           </div>
 
-          <div className="p-6 sm:p-10 lg:p-12">
-            <p className="font-mono text-xs tracking-widest text-zinc-400 uppercase mb-5">
+          <div className="p-8 sm:p-12 lg:p-16">
+            <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase mb-6">
               Direktkontakt
             </p>
             <div className="divide-y divide-zinc-300">
@@ -200,9 +191,9 @@ export default function Home() {
                 { label: "Format", value: "Strategiegespräch" },
                 { label: "Kosten", value: "Unverbindlich" },
               ].map(({ label, value }) => (
-                <div key={label} className="flex justify-between items-baseline py-4 gap-4">
-                  <span className="font-mono text-xs text-zinc-400 shrink-0">{label}</span>
-                  <span className="text-sm font-medium text-zinc-700 text-right">{value}</span>
+                <div key={label} className="flex justify-between items-baseline py-5 gap-4">
+                  <span className="font-mono text-xs text-zinc-500 shrink-0">{label}</span>
+                  <span className="text-sm font-semibold text-zinc-900 text-right">{value}</span>
                 </div>
               ))}
             </div>
@@ -214,17 +205,17 @@ export default function Home() {
       {/* ── FOOTER ─────────────────────────────────────────── */}
       <footer>
         <div className="flex items-stretch">
-          <div className="flex-1 border-r border-zinc-300 px-6 py-5">
+          <div className="flex-1 border-r border-zinc-300 px-6 py-6">
             <Image
               src="/rawlogic-font-web3-black.png"
               alt="RawLogic"
               width={90}
               height={24}
-              className="object-contain opacity-20"
+              className="object-contain opacity-25"
             />
           </div>
-          <div className="flex items-center px-6 py-5">
-            <span className="font-mono text-xs text-zinc-400">
+          <div className="flex items-center px-6 py-6">
+            <span className="font-mono text-xs text-zinc-500">
               © 2026 RawLogic
             </span>
           </div>
