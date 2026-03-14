@@ -6,20 +6,23 @@ const divisions = [
   {
     name: "RAWLOGIC OPS",
     tag: "Agenten & Middleware",
+    hook: "Stoppt manuelle Routineaufgaben.",
     description:
-      "Autonome Software-Agenten orchestrieren Ihre internen Prozesse vollständig — von der API-Integration bis zur Workflow-Automatisierung. Kein manueller Eingriff, keine Wartezeiten.",
+      "Autonome Software-Agenten übernehmen repetitive Prozesse vollständig — von der API-Integration bis zur Workflow-Orchestrierung. Ihr Team fokussiert sich auf das, was wirklich zählt.",
   },
   {
     name: "RAWLOGIC SIGNALS",
     tag: "Proprietäre Intent-Daten",
+    hook: "Findet Kunden, bevor sie suchen.",
     description:
-      "Echtzeit-Signale aus dem digitalen Kaufverhalten Ihrer Zielkunden. Wir destillieren Marktlärm in präzise Kaufabsichten — bevor Ihr Wettbewerb reagiert.",
+      "Proprietäre Echtzeit-Signale aus dem digitalen Kaufverhalten Ihrer Zielgruppe. Wir verwandeln Marktlärm in präzise Kaufabsichten — und liefern sie, bevor Ihr Wettbewerb reagiert.",
   },
   {
     name: "RAWLOGIC CORE",
     tag: "Bits to Atoms",
+    hook: "Verbindet digitale Logik mit physischer Produktion.",
     description:
-      "Wir verbinden Cloud-Logik mit physischer Produktion: digitale Steuerungssysteme, Edge Computing und industrielle Automatisierung aus einer Hand.",
+      "Wir schließen die Lücke zwischen Cloud-Systemen und industrieller Fertigung: Steuerungslogik, Edge Computing und Produktionsautomation aus einer Hand.",
   },
 ];
 
@@ -57,17 +60,22 @@ export default function Home() {
 
           {/* Headline */}
           <div className="border-b lg:border-b-0 lg:border-r border-zinc-300 p-6 sm:p-10 lg:p-12">
-            <h1 className="text-[2.4rem] sm:text-[3.5rem] lg:text-[4.5rem] font-black leading-[0.92] tracking-[-0.03em] text-zinc-900 uppercase mb-8">
+            {/* Engineering label */}
+            <div className="flex items-center gap-2.5 mb-7">
+              <span className="h-2 w-2 bg-zinc-400 shrink-0" />
+              <p className="font-mono text-xs tracking-widest text-zinc-500 uppercase">
+                Strategische Automatisierung &nbsp;·&nbsp; B2B Infrastruktur
+              </p>
+            </div>
+
+            <h1 className="text-[2.4rem] sm:text-[3.5rem] lg:text-[4.5rem] font-black leading-[0.92] tracking-[-0.03em] text-zinc-900 uppercase mb-7">
               AUTONOME<br />INFRA-<br />STRUKTUR.
             </h1>
 
-            {/* Status */}
-            <div className="flex items-center gap-3 mb-10">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-600 shrink-0" />
-              <p className="font-mono text-sm tracking-wide text-zinc-600">
-                STAND: 14.03.2026 &nbsp;·&nbsp; SYSTEM_STATUS: ONLINE
-              </p>
-            </div>
+            {/* Hook */}
+            <p className="text-xl leading-relaxed text-zinc-700 mb-10 max-w-lg">
+              Wir lösen das Problem manueller Prozess-Sackgassen. RawLogic baut die autonome Brücke zwischen Ihren Daten und Ihren Operationen – für eine Belegschaft, die niemals schläft.
+            </p>
 
             <a
               href="#kontakt"
@@ -126,7 +134,7 @@ export default function Home() {
         </div>
 
         <div className="divide-y divide-zinc-300">
-          {divisions.map(({ name, tag, description }) => (
+          {divisions.map(({ name, tag, hook, description }) => (
             <div key={name} className="p-6 sm:p-10">
               <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-5 mb-3">
                 <h3 className="text-xl font-black tracking-tight text-zinc-900 uppercase">
@@ -136,6 +144,7 @@ export default function Home() {
                   {tag}
                 </span>
               </div>
+              <p className="text-lg font-semibold text-zinc-900 mb-2">{hook}</p>
               <p className="text-base leading-relaxed text-zinc-600 max-w-2xl">
                 {description}
               </p>
