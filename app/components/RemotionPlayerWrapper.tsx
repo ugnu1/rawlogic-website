@@ -9,8 +9,8 @@ export default function RemotionPlayerWrapper() {
       component={AutonomousGrid}
       durationInFrames={180}
       fps={30}
-      compositionWidth={1280}
-      compositionHeight={420}
+      compositionWidth={1260}
+      compositionHeight={300}
       style={{ width: "100%", display: "block" }}
       autoPlay
       loop

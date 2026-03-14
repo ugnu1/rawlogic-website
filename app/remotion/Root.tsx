@@ -10,8 +10,8 @@ export const RemotionRoot: React.FC = () => (
       component={AutonomousGrid}
       durationInFrames={180}   // 6 seconds at 30fps
       fps={30}
-      width={1280}
-      height={420}
+      width={1260}
+      height={300}
     />
   </>
 );

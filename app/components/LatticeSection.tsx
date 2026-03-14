@@ -10,7 +10,7 @@ const RemotionPlayerWrapper = dynamic(
     loading: () => (
       <div
         className="w-full bg-[#04040a]"
-        style={{ aspectRatio: "1280 / 420" }}
+        style={{ aspectRatio: "1260 / 300" }}
       />
     ),
   }
