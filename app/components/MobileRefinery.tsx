@@ -1,5 +1,5 @@
 // Remotion composition: "Digitale Raffinerie" — Vertical mobile workflow
-// Rohdaten + seitliche Datenquellen → RAWLOGIC KERN (Synchronisation) → Autonomer Workflow
+// Rohdaten + Marktdaten + Archivdaten → RAWLOGIC KERN (Synchronisation) → Autonomer Workflow
 
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, AbsoluteFill } from "remotion";
@@ -9,33 +9,37 @@ const MW  = 300;
 const MH  = 600;
 const INK = "#000000";
 
-// ── Layout zones (vertical) ─────────────────────────────────
-const EMIT_CX = MW / 2;   // 150
+// ── Layout zones ────────────────────────────────────────────
+const EMIT_CX = MW / 2;
 const EMIT_CY = 68;
 
 const BOX_X_M = 35;       const BOX_Y_M = 118;
 const BOX_W_M = 230;      const BOX_H_M = 200;
 const BOX_BOT = BOX_Y_M + BOX_H_M;   // 318
+const BOX_R_M = BOX_X_M + BOX_W_M;   // 265
 
-const SYM_CX_M = MW / 2;   // 150
+const SYM_CX_M = MW / 2;
 const SYM_CY_M = 500;
 
-// Three vertical lane tracks inside box
 const LANE_X_M: [number, number, number] = [
-  Math.round(BOX_X_M + BOX_W_M * 0.25),  // ≈ 92
-  Math.round(BOX_X_M + BOX_W_M * 0.5),   // 150
-  Math.round(BOX_X_M + BOX_W_M * 0.75),  // ≈ 207
+  Math.round(BOX_X_M + BOX_W_M * 0.25),
+  Math.round(BOX_X_M + BOX_W_M * 0.5),
+  Math.round(BOX_X_M + BOX_W_M * 0.75),
 ];
 
-// External feeder entry y-positions (Marktdaten left, Archivdaten right)
+// Feeder entry y-positions
 const MARKT_Y_M  = Math.round(BOX_Y_M + BOX_H_M * 0.33); // ≈ 184
 const ARCHIV_Y_M = Math.round(BOX_Y_M + BOX_H_M * 0.67); // ≈ 252
 
-// Zone labels — ROHDATEN above emitter, clear of particle path
+// Feeder pipe extents (how far outside the box the pipes extend)
+const MARKT_PIPE_LEFT  = 3;         // left edge of Marktdaten pipe
+const ARCHIV_PIPE_RIGHT = MW - 3;   // right edge of Archivdaten pipe
+
+// Zone labels
 const ZONE_LBLS_M = [
-  { x: MW / 2, y: 22,  text: "ROHDATEN"               },
-  { x: MW / 2, y: 334, text: "DATEN-SYNCHRONISATION"  },
-  { x: MW / 2, y: 572, text: "AUTONOMER WORKFLOW"     },
+  { x: MW / 2, y: 22,  text: "ROHDATEN"              },
+  { x: MW / 2, y: 334, text: "DATEN-SYNCHRONISATION" },
+  { x: MW / 2, y: 572, text: "AUTONOMER WORKFLOW"    },
 ];
 
 // ── Colour helpers ──────────────────────────────────────────
@@ -49,7 +53,7 @@ function lerpColor(t: number) {
   return `rgb(${r},${g},${b})`;
 }
 
-// ── Particle system ─────────────────────────────────────────
+// ── Main particle system ─────────────────────────────────────
 const N = 24;
 
 function particleMobile(frame: number, fps: number, i: number) {
@@ -60,7 +64,6 @@ function particleMobile(frame: number, fps: number, i: number) {
 
   const PRE = 0.38, MID = 0.66;
 
-  // ── Y ──
   let y: number;
   if (t < PRE) {
     y = EMIT_CY + (BOX_Y_M - EMIT_CY) * (t / PRE);
@@ -72,7 +75,6 @@ function particleMobile(frame: number, fps: number, i: number) {
     y = BOX_BOT + (SYM_CY_M - BOX_BOT) * e;
   }
 
-  // ── X ── scatter → align to lane track → converge to centre
   const scatter = (i * 37 % 60) - 30;
   const entryX  = EMIT_CX + scatter;
   const laneX   = LANE_X_M[lane];
@@ -91,8 +93,26 @@ function particleMobile(frame: number, fps: number, i: number) {
 
   const ct      = t < PRE ? 0 : t < MID ? (t - PRE) / (MID - PRE) : 1;
   const opacity = t < 0.04 ? t / 0.04 : t > 0.96 ? (1 - t) / 0.04 : 0.93;
-
   return { x, y, color: lerpColor(ct), opacity, r: 2.4 + ct * 1.6, ct };
+}
+
+// ── Feeder particle helper ───────────────────────────────────
+const N_FEED = 4;
+
+function feederParticlesH(
+  frame: number, fps: number,
+  startX: number, endX: number,
+  y: number,
+): Array<{ x: number; op: number; y: number }> {
+  const PERIOD = fps * 1.8;
+  return Array.from({ length: N_FEED }, (_, i) => {
+    const t = ((frame + (i / N_FEED) * PERIOD) % PERIOD) / PERIOD;
+    return {
+      x:  startX + (endX - startX) * t,
+      y,
+      op: t < 0.07 ? t / 0.07 : t > 0.93 ? (1 - t) / 0.07 : 1,
+    };
+  });
 }
 
 // ── Eased interpolate shorthand ─────────────────────────────
@@ -118,12 +138,9 @@ export const MobileRefinery: React.FC = () => {
   const pulse = 0.85 + 0.15 * Math.sin(frame * 0.12);
 
   const hitFlash = parts.reduce((max, p) => {
-    const dx = p.x - SYM_CX_M;
-    const dy = p.y - SYM_CY_M;
-    if (Math.sqrt(dx * dx + dy * dy) < 32 && p.ct > 0.75) {
-      return Math.max(max, p.opacity);
-    }
-    return max;
+    const dx = p.x - SYM_CX_M, dy = p.y - SYM_CY_M;
+    return Math.sqrt(dx * dx + dy * dy) < 32 && p.ct > 0.75
+      ? Math.max(max, p.opacity) : max;
   }, 0);
 
   const PERIM_M = 2 * (BOX_W_M + BOX_H_M);
@@ -134,11 +151,17 @@ export const MobileRefinery: React.FC = () => {
   const scanY  = BOX_Y_M + scanT * BOX_H_M;
   const scanOp = scanT < 0.03 ? 0 : scanT > 0.97 ? 0 : 0.08;
 
-  // Feeder opacity — appears after box is drawn
-  const feedOp = Math.max(0, (boxBuild - 0.35) / 0.65) * 0.52;
+  // Feeder fade-in
+  const feedOp = Math.max(0, (boxBuild - 0.35) / 0.65);
+
+  // Feeder particles — Marktdaten flows left→right into box left wall
+  //                    Archivdaten flows right→left into box right wall
+  const marktFeed  = feederParticlesH(frame, fps, MARKT_PIPE_LEFT, BOX_X_M,   MARKT_Y_M);
+  const archivFeed = feederParticlesH(frame, fps, ARCHIV_PIPE_RIGHT, BOX_R_M, ARCHIV_Y_M);
 
   const CL      = 12;
   const goldRGB = "rgb(196,150,28)";
+  const PORT_R  = 4;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#ebebeb" }}>
@@ -167,26 +190,20 @@ export const MobileRefinery: React.FC = () => {
         ))}
 
         {/* RAWLOGIC KERN box */}
-        <path
-          d={boxPath}
-          fill="rgba(0,0,0,0.02)"
-          stroke={INK}
-          strokeWidth={2}
-          strokeDasharray={PERIM_M}
-          strokeDashoffset={PERIM_M * (1 - boxBuild)}
-        />
+        <path d={boxPath}
+          fill="rgba(0,0,0,0.02)" stroke={INK} strokeWidth={2}
+          strokeDasharray={PERIM_M} strokeDashoffset={PERIM_M * (1 - boxBuild)} />
 
         {/* Corner marks */}
         {boxBuild > 0.85 && [
-          { x: BOX_X_M,            y: BOX_Y_M,  dx:  1, dy:  1 },
-          { x: BOX_X_M + BOX_W_M,  y: BOX_Y_M,  dx: -1, dy:  1 },
-          { x: BOX_X_M,            y: BOX_BOT,  dx:  1, dy: -1 },
-          { x: BOX_X_M + BOX_W_M,  y: BOX_BOT,  dx: -1, dy: -1 },
+          { x: BOX_X_M,   y: BOX_Y_M,  dx:  1, dy:  1 },
+          { x: BOX_R_M,   y: BOX_Y_M,  dx: -1, dy:  1 },
+          { x: BOX_X_M,   y: BOX_BOT,  dx:  1, dy: -1 },
+          { x: BOX_R_M,   y: BOX_BOT,  dx: -1, dy: -1 },
         ].map(({ x, y, dx, dy }, k) => (
           <path key={k}
             d={`M ${x + dx * CL},${y} L ${x},${y} L ${x},${y + dy * CL}`}
-            fill="none" stroke={INK} strokeWidth={1.5}
-          />
+            fill="none" stroke={INK} strokeWidth={1.5} />
         ))}
 
         {/* Box title */}
@@ -194,9 +211,7 @@ export const MobileRefinery: React.FC = () => {
           textAnchor="middle" fill={INK} fontSize={9}
           fontFamily="ui-monospace, monospace" letterSpacing={2.5}
           opacity={boxBuild}
-        >
-          RAWLOGIC KERN
-        </text>
+        >RAWLOGIC KERN</text>
 
         {/* Lane guide lines */}
         {LANE_X_M.map((lx, k) => (
@@ -206,69 +221,85 @@ export const MobileRefinery: React.FC = () => {
         ))}
 
         {/* Scanning horizontal line */}
-        <line x1={BOX_X_M + 2} y1={scanY} x2={BOX_X_M + BOX_W_M - 2} y2={scanY}
+        <line x1={BOX_X_M + 2} y1={scanY} x2={BOX_R_M - 2} y2={scanY}
           stroke={`rgba(196,150,28,${scanOp})`} strokeWidth={1} />
 
-        {/* Status indicator */}
-        <text x={BOX_X_M + BOX_W_M - 6} y={BOX_BOT - 6}
-          textAnchor="end"
-          fill={`rgba(0,0,0,${0.3 * boxBuild})`}
+        {/* Status */}
+        <text x={BOX_R_M - 6} y={BOX_BOT - 6}
+          textAnchor="end" fill={`rgba(0,0,0,${0.3 * boxBuild})`}
           fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
-        >
-          STATUS: AKTIV
-        </text>
+        >STATUS: AKTIV</text>
 
-        {/* ── External data feeders ──────────────────────────
-             Marktdaten enters from the left side of the Kern box.
-             Archivdaten enters from the right side.
-             Labels are rotated to sit cleanly in the side margins. */}
-        {feedOp > 0 && (
-          <g opacity={feedOp}>
-            {/* Marktdaten — left feeder */}
-            <line x1={2} y1={MARKT_Y_M} x2={BOX_X_M - 1} y2={MARKT_Y_M}
-              stroke={INK} strokeWidth={1} strokeDasharray="3 4" />
-            <circle cx={BOX_X_M} cy={MARKT_Y_M} r={2.5} fill={INK} />
-            <text
-              x={BOX_X_M / 2} y={MARKT_Y_M}
-              textAnchor="middle" fill={INK}
-              fontSize={6} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
-              transform={`rotate(-90, ${BOX_X_M / 2}, ${MARKT_Y_M})`}
-            >
-              MARKTDATEN
-            </text>
+        {/* ══════════════════════════════════════════════════════
+            MARKTDATEN — horizontal injection pipe from left
+            ══════════════════════════════════════════════════ */}
+        <g opacity={feedOp}>
+          {/* Pipe */}
+          <line x1={MARKT_PIPE_LEFT} y1={MARKT_Y_M} x2={BOX_X_M} y2={MARKT_Y_M}
+            stroke={INK} strokeWidth={2} />
+          {/* Port square at box entry */}
+          <rect
+            x={BOX_X_M - PORT_R} y={MARKT_Y_M - PORT_R}
+            width={PORT_R * 2} height={PORT_R * 2}
+            fill={INK}
+          />
+          {/* Label — above pipe, two lines to fit in 35 px left margin */}
+          <text x={2} y={MARKT_Y_M - 9}
+            textAnchor="start" fill={INK}
+            fontSize={5.5} fontFamily="ui-monospace, monospace"
+          >MARKT-</text>
+          <text x={2} y={MARKT_Y_M - 2}
+            textAnchor="start" fill={INK}
+            fontSize={5.5} fontFamily="ui-monospace, monospace"
+          >DATEN</text>
+          {/* Flowing particles (left edge → box) */}
+          {marktFeed.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r={2.2}
+              fill="rgb(148,148,148)" opacity={p.op} />
+          ))}
+        </g>
 
-            {/* Archivdaten — right feeder */}
-            <line x1={BOX_X_M + BOX_W_M + 1} y1={ARCHIV_Y_M} x2={MW - 2} y2={ARCHIV_Y_M}
-              stroke={INK} strokeWidth={1} strokeDasharray="3 4" />
-            <circle cx={BOX_X_M + BOX_W_M} cy={ARCHIV_Y_M} r={2.5} fill={INK} />
-            <text
-              x={BOX_X_M + BOX_W_M + (MW - BOX_X_M - BOX_W_M) / 2}
-              y={ARCHIV_Y_M}
-              textAnchor="middle" fill={INK}
-              fontSize={6} fontFamily="ui-monospace, monospace" letterSpacing={0.5}
-              transform={`rotate(90, ${BOX_X_M + BOX_W_M + (MW - BOX_X_M - BOX_W_M) / 2}, ${ARCHIV_Y_M})`}
-            >
-              ARCHIVDATEN
-            </text>
-          </g>
-        )}
+        {/* ══════════════════════════════════════════════════════
+            ARCHIVDATEN — horizontal injection pipe from right
+            ══════════════════════════════════════════════════ */}
+        <g opacity={feedOp}>
+          {/* Pipe */}
+          <line x1={BOX_R_M} y1={ARCHIV_Y_M} x2={ARCHIV_PIPE_RIGHT} y2={ARCHIV_Y_M}
+            stroke={INK} strokeWidth={2} />
+          {/* Port square at box entry */}
+          <rect
+            x={BOX_R_M - PORT_R} y={ARCHIV_Y_M - PORT_R}
+            width={PORT_R * 2} height={PORT_R * 2}
+            fill={INK}
+          />
+          {/* Label — above pipe, two lines to fit in 35 px right margin */}
+          <text x={MW - 2} y={ARCHIV_Y_M - 9}
+            textAnchor="end" fill={INK}
+            fontSize={5.5} fontFamily="ui-monospace, monospace"
+          >ARCHIV-</text>
+          <text x={MW - 2} y={ARCHIV_Y_M - 2}
+            textAnchor="end" fill={INK}
+            fontSize={5.5} fontFamily="ui-monospace, monospace"
+          >DATEN</text>
+          {/* Flowing particles (right edge → box) */}
+          {archivFeed.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r={2.2}
+              fill="rgb(148,148,148)" opacity={p.op} />
+          ))}
+        </g>
 
-        {/* ── Emitter (Datenquelle) ────────────────────────── */}
+        {/* Emitter (Datenquelle) */}
         <circle cx={EMIT_CX} cy={EMIT_CY} r={6}
-          fill="none" stroke={INK} strokeWidth={1.5}
-          opacity={boxBuild} />
+          fill="none" stroke={INK} strokeWidth={1.5} opacity={boxBuild} />
         <circle cx={EMIT_CX} cy={EMIT_CY} r={2.2}
           fill={INK} opacity={boxBuild} />
         <text x={EMIT_CX + 14} y={EMIT_CY + 5}
-          fill={INK}
-          fontSize={9} fontWeight="700"
+          fill={INK} fontSize={9} fontWeight="700"
           fontFamily="ui-monospace, monospace"
           opacity={0.9 * boxBuild}
-        >
-          DATENQUELLE
-        </text>
+        >DATENQUELLE</text>
 
-        {/* Flow arrows (down) */}
+        {/* Flow arrows */}
         {[BOX_Y_M - 14, BOX_BOT + 14].map((ay, k) => (
           <text key={k} x={EMIT_CX} y={ay}
             textAnchor="middle" fill={INK} fontSize={13}
@@ -276,19 +307,16 @@ export const MobileRefinery: React.FC = () => {
           >↓</text>
         ))}
 
-        {/* ── Particles ──────────────────────────────────── */}
+        {/* Main particles */}
         {parts.map((p, i) => (
-          <circle
-            key={i}
+          <circle key={i}
             cx={p.x} cy={p.y} r={p.r}
-            fill={p.color}
-            opacity={p.opacity * partFade}
+            fill={p.color} opacity={p.opacity * partFade}
             filter={p.ct > 0.45 ? "url(#fg-m)" : undefined}
           />
         ))}
 
-        {/* ── Autonomer Workflow Symbol ─────────────────────
-             Large rotating/pulsing hexagon. Flashes gold on particle hit. */}
+        {/* Autonomer Workflow Symbol */}
         {(() => {
           const outerPts = Array.from({ length: 6 }, (_, k) => {
             const a = k * Math.PI / 3 + rot;
@@ -299,33 +327,29 @@ export const MobileRefinery: React.FC = () => {
             return `${SYM_CX_M + Math.cos(a) * 20 * symEntry * pulse},${SYM_CY_M + Math.sin(a) * 20 * symEntry * pulse}`;
           }).join(" ");
           const isHit      = hitFlash > 0.3;
-          const strokeCol  = isHit ? goldRGB : INK;
           const flashAlpha = symEntry * (0.85 + hitFlash * 0.4);
           return (
             <g filter={hitFlash > 0.5 ? "url(#fg-m)" : undefined}>
               <polygon points={outerPts} fill="none"
-                stroke={strokeCol} strokeWidth={isHit ? 3 : 2}
+                stroke={isHit ? goldRGB : INK}
+                strokeWidth={isHit ? 3 : 2}
                 opacity={flashAlpha} />
               <polygon points={innerPts} fill="none"
                 stroke={goldRGB} strokeWidth={1.5}
                 opacity={symEntry * (0.4 + hitFlash * 0.4)} />
               <circle cx={SYM_CX_M} cy={SYM_CY_M} r={6 * symEntry}
-                fill={isHit ? goldRGB : INK}
-                opacity={flashAlpha} />
+                fill={isHit ? goldRGB : INK} opacity={flashAlpha} />
             </g>
           );
         })()}
 
-        {/* ── Zone labels ─────────────────────────────────── */}
+        {/* Zone labels */}
         {ZONE_LBLS_M.map(({ x, y, text }, k) => (
           <text key={k} x={x} y={y}
-            textAnchor="middle"
-            fill="#000000"
+            textAnchor="middle" fill="#000000"
             fontSize={7} fontFamily="ui-monospace, monospace" letterSpacing={1}
             opacity={0.78 * lblFade}
-          >
-            {text}
-          </text>
+          >{text}</text>
         ))}
       </svg>
     </AbsoluteFill>
